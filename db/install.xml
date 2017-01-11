@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/assign/feedback/structured/db" VERSION="20170222" COMMENT="XMLDB file for Moodle mod/assign/feedback/structured"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="assignfeedback_structured" COMMENT="Structured feedback for submitted assignments">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="assignment" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The assignment instance this feedback relates to"/>
+        <FIELD NAME="grade" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The grade instance this feedback relates to"/>
+        <FIELD NAME="criterion" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The criterion this feedback relates to"/>
+        <FIELD NAME="commenttext" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The feedback text"/>
+        <FIELD NAME="commentformat" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The feedback text format"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="assignment" TYPE="foreign" FIELDS="assignment" REFTABLE="assign" REFFIELDS="id" COMMENT="The assignment instance this feedback relates to"/>
+        <KEY NAME="grade" TYPE="foreign" FIELDS="grade" REFTABLE="assign_grades" REFFIELDS="id" COMMENT="The grade instance this feedback relates to"/>
+        <KEY NAME="criterion" TYPE="foreign" FIELDS="criterion" REFTABLE="assignfeedback_structured_cr" REFFIELDS="id" COMMENT="The criterion this feedback relates to"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="assignfeedback_structured_cr" COMMENT="Structured feedback criteria">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Criterion name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Criterion description"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="assignfeedback_structured_cs" COMMENT="Structured feedback criteria sets">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" COMMENT="Criteria set name"/>
+        <FIELD NAME="criteria" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Comma separated list of criterion ids"/>
+        <FIELD NAME="owner" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The user id of this criteria set's owner"/>
+        <FIELD NAME="public" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Whether this criteria set should be available for other users to duplicate"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+        <KEY NAME="owner" TYPE="foreign" FIELDS="owner" REFTABLE="user" REFFIELDS="id" COMMENT="The user id of this criteria set's owner"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
+</XMLDB>
