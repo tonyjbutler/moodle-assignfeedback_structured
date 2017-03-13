@@ -600,6 +600,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 get_string('savecriteriaset', 'assignfeedback_structured'));
         $mform->addHelpButton('assignfeedback_structured_saveset', 'savecriteriaset', 'assignfeedback_structured');
         $mform->setAdvanced('assignfeedback_structured_saveset');
+        $mform->disabledIf('assignfeedback_structured_saveset', 'assignfeedback_structured_critname[0]', 'eq', '');
         $mform->addElement('text', 'assignfeedback_structured_setname', get_string('criteriasetname', 'assignfeedback_structured'),
                 array('size' => '64', 'maxlength' => '64'));
         $mform->addHelpButton('assignfeedback_structured_setname', 'criteriasetname', 'assignfeedback_structured');
