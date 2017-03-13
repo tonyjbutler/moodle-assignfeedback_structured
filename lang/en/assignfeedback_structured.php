@@ -46,5 +46,5 @@ $string['enabled'] = 'Structured feedback';
 $string['enabled_help'] = 'If enabled, the teacher will be able to define any number of criteria on which to provide specific feedback.';
 $string['pluginname'] = 'Structured feedback';
 $string['savecriteriaset'] = 'Save criteria set';
-$string['savecriteriaset_help'] = 'Tick this box and provide a unique name for your criteria set if you want to be able to copy it easily into other assignments. You may make it available to other users too if you wish, but only you can modify it.';
+$string['savecriteriaset_help'] = 'Tick this box and provide a unique name for your criteria set if you want to be able to copy it easily into other assignments.';
 $string['structuredfilename'] = 'structured.html';

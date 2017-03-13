@@ -554,6 +554,8 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return void
      */
     public function get_settings(MoodleQuickForm $mform) {
+        global $COURSE;
+
         $mform->addElement('header', 'assignfeedback_structured_criteria', get_string('criteria', 'assignfeedback_structured'));
 
         // Check if there are any saved criteria sets that can be used here.
@@ -611,11 +613,16 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->addRule('assignfeedback_structured_setname', get_string('criteriasetnameused', 'assignfeedback_structured'),
                 'validate_setname', $this);
         $mform->disabledIf('assignfeedback_structured_setname', 'assignfeedback_structured_saveset', 'notchecked');
-        $mform->addElement('advcheckbox', 'assignfeedback_structured_setpublic',
-                get_string('criteriasetpublic', 'assignfeedback_structured'));
-        $mform->addHelpButton('assignfeedback_structured_setpublic', 'criteriasetpublic', 'assignfeedback_structured');
-        $mform->setAdvanced('assignfeedback_structured_setpublic');
-        $mform->disabledIf('assignfeedback_structured_setpublic', 'assignfeedback_structured_saveset', 'notchecked');
+        if (has_capability('assignfeedback/structured:publishcriteriasets', context_course::instance($COURSE->id))) {
+            $mform->addElement('advcheckbox', 'assignfeedback_structured_setpublic',
+                    get_string('criteriasetpublic', 'assignfeedback_structured'));
+            $mform->addHelpButton('assignfeedback_structured_setpublic', 'criteriasetpublic', 'assignfeedback_structured');
+            $mform->setAdvanced('assignfeedback_structured_setpublic');
+            $mform->disabledIf('assignfeedback_structured_setpublic', 'assignfeedback_structured_saveset', 'notchecked');
+        } else {
+            $mform->addElement('hidden', 'assignfeedback_structured_setpublic', 0);
+            $mform->setType('assignfeedback_structured_setpublic', PARAM_INT);
+        }
 
         // Pre-populate fields with existing data and lock as appropriate.
         $criteria = array_values($criteria);

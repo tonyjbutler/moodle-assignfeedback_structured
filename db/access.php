@@ -23,4 +23,12 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
-$capabilities = array();
+$capabilities = array(
+    'assignfeedback/structured:publishcriteriasets' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => array(
+            'manager' => CAP_ALLOW
+        )
+    )
+);
