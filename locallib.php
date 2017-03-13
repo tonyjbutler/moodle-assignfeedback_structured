@@ -565,6 +565,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $mform->addGroup($critsetsgrp, 'assignfeedback_structured_critset',
                     get_string('criteriaset', 'assignfeedback_structured'), null, false);
             $mform->addHelpButton('assignfeedback_structured_critset', 'criteriaset', 'assignfeedback_structured');
+            $mform->disabledIf('assignfeedback_structured_critset_copy', 'assignfeedback_structured_critset_select', 'eq', 0);
         }
 
         $critelements = array();
