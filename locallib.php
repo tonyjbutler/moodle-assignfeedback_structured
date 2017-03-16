@@ -669,6 +669,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $mform->setType('assignfeedback_structured_setpublic', PARAM_INT);
         }
 
+        // If this is not the last feedback plugin, add a section to contain the settings for the rest.
+        if (!$this->is_last()) {
+            $mform->addElement('header', 'feedbacksettings', get_string('feedbacksettings', 'assign'));
+        }
+
         // Pre-populate fields with existing data and lock as appropriate.
         $criteria = array_values($criteria);
         foreach ($criteria as $index => $criterion) {
