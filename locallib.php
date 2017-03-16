@@ -584,6 +584,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         // Delete criteria set if no longer needed.
         if ($criteriaset = $this->get_criteria_set()) {
             $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriaset->id));
+            $this->set_config('criteriaset', 0);
         }
 
         // If nothing is configured disable the plugin.
