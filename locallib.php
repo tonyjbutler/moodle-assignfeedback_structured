@@ -640,8 +640,10 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $critoptions['assignfeedback_structured_critname']['type'] = PARAM_TEXT;
         $critoptions['assignfeedback_structured_critid']['type'] = PARAM_INT;
 
-        $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'crit_repeats',
+        $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'crit_repeats',
                 'assignfeedback_structured_critadd', 3, get_string('addcriteria', 'assignfeedback_structured'), true);
+        $lastfield = 'assignfeedback_structured_critname[' . ($critfields - 1) . ']';
+        $mform->disabledIf('assignfeedback_structured_critadd', $lastfield, 'eq', '');
 
         // Enable teachers to save criteria sets for use in other assignments.
         $mform->addElement('advcheckbox', 'assignfeedback_structured_saveset',
