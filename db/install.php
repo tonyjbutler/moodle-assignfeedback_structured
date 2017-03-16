@@ -39,6 +39,8 @@ function xmldb_assignfeedback_structured_install() {
     $pluginmanager = new assign_plugin_manager('assignfeedback');
     $pluginmanager->move_plugin('structured', 'down');
     $pluginmanager->move_plugin('structured', 'down');
+    $pluginmanager->move_plugin('structured', 'down');
+    $pluginmanager->move_plugin('structured', 'down');
 
     return true;
 }
