@@ -962,11 +962,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $text = '';
         foreach ($criteria as $critid => $criterion) {
             if (!empty($feedbackcomments[$critid]) && !empty($feedbackcomments[$critid]->commenttext)) {
+                $desc = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
                 $crit = get_string('criteriontitle', 'assignfeedback_structured',
                         array('name' => format_string($criterion->name), 'desc' => ''));
                 $comment = format_text($feedbackcomments[$critid]->commenttext, $feedbackcomments[$critid]->commentformat,
                         array('context' => $this->get_context()));
-                $text .= html_writer::div($crit);
+                $text .= html_writer::div($crit, '', array('title' => $desc));
                 $text .= html_writer::div($comment, 'well-small');
             }
         }
@@ -1024,16 +1025,19 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $files = array();
 
         if ($feedbackcomments) {
-            $formattedtext = html_writer::tag('h2', get_string('pluginname', 'assignfeedback_structured'));
+            $formattedtext = html_writer::tag('h2', get_string('pluginname', 'assignfeedback_structured'),
+                    array('style' => 'font-family: Arial, sans-serif;'));
             foreach ($criteria as $critid => $criterion) {
                 if (!empty($feedbackcomments[$critid]) && !empty($feedbackcomments[$critid]->commenttext)) {
                     $commenttext = $this->assignment->download_rewrite_pluginfile_urls($feedbackcomments[$critid]->commenttext,
                             $user, $this);
-                    $formattedtext .= html_writer::tag('h3', format_string($criterion->name));
-                    $formattedtext .= format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
-                    $formattedtext .= html_writer::tag('h4', get_string('comments'));
-                    $formattedtext .= format_text($commenttext, $feedbackcomments[$critid]->commentformat,
+                    $description = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
+                    $comment = format_text($commenttext, $feedbackcomments[$critid]->commentformat,
                             array('context' => $this->get_context()));
+                    $formattedtext .= html_writer::tag('h3', format_string($criterion->name),
+                            array('style' => 'font-family: Arial, sans-serif;'));
+                    $formattedtext .= html_writer::tag('div', $description, array('style' => 'font-style: italic;'));
+                    $formattedtext .= html_writer::tag('p', $comment);
                 }
             }
             $head = '<head><meta charset="UTF-8"></head>';
