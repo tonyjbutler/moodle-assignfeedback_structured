@@ -687,10 +687,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $mform->setDefault('assignfeedback_structured_critdesc[' . $index . ']', $criterion->description);
             $mform->setDefault('assignfeedback_structured_critid[' . $index . ']', $criterion->id);
             if ($this->is_criterion_used($criterion->id) || $this->is_immutable()) {
-                $mform->freeze(array(
+                $elements = array(
                     'assignfeedback_structured_critname[' . $index . ']',
                     'assignfeedback_structured_critdesc[' . $index . ']'
-                ));
+                );
+                $mform->freeze($elements);
+                if ($this->is_immutable()) {
+                    $mform->updateElementAttr($elements,
+                            array('title' => get_string('criteriasetlocked', 'assignfeedback_structured')));
+                } else {
+                    $mform->updateElementAttr($elements,
+                            array('title' => get_string('criterionused', 'assignfeedback_structured')));
+                }
             }
         }
         if ($criteriaset = $this->get_criteria_set()) {
@@ -699,20 +707,26 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 $mform->setDefault('assignfeedback_structured_setname', $criteriaset->name);
                 $mform->setDefault('assignfeedback_structured_setpublic', $criteriaset->public);
                 if ($this->is_immutable()) {
-                    $mform->freeze(array(
+                    $elements = array(
                         'assignfeedback_structured_saveset',
                         'assignfeedback_structured_setname',
                         'assignfeedback_structured_setpublic',
                         'assignfeedback_structured_critadd'
-                    ));
+                    );
+                    $mform->freeze($elements);
+                    $mform->updateElementAttr($elements,
+                            array('title' => get_string('criteriasetlocked', 'assignfeedback_structured')));
                 }
             } else if ($criteriaset->owner != $USER->id &&
                     !has_capability('assignfeedback/structured:editanycriteriaset', $this->get_course_context())) {
-                $mform->freeze(array(
+                $elements = array(
                     'assignfeedback_structured_saveset',
                     'assignfeedback_structured_setname',
                     'assignfeedback_structured_setpublic'
-                ));
+                );
+                $mform->freeze($elements);
+                $mform->updateElementAttr($elements,
+                        array('title' => get_string('criteriasetnotowned', 'assignfeedback_structured')));
             }
         }
     }
