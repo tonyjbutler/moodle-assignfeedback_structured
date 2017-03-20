@@ -529,16 +529,17 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $criteria = $this->get_criteria();
         $critids = array();
         foreach ($data->assignfeedback_structured_critname as $key => $critname) {
+            $critname = trim($critname);
             // Ignore unnamed criteria.
             if (empty($critname)) {
                 continue;
             }
+            $critdesc = trim($data->assignfeedback_structured_critdesc[$key]);
             if (!empty($criteria) && in_array($data->assignfeedback_structured_critid[$key], array_keys($criteria))) {
                 $critid = $data->assignfeedback_structured_critid[$key];
-                if ($criteria[$critid]->name != $critname ||
-                        $criteria[$critid]->description != $data->assignfeedback_structured_critdesc[$key]) {
+                if ($criteria[$critid]->name != $critname || $criteria[$critid]->description != $critdesc) {
                     $criteria[$critid]->name = $critname;
-                    $criteria[$critid]->description = $data->assignfeedback_structured_critdesc[$key];
+                    $criteria[$critid]->description = $critdesc;
                     $DB->update_record('assignfeedback_structured_cr', $criteria[$critid]);
                 }
                 $critids[] = $critid;
@@ -546,7 +547,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
             } else {
                 $criterion = new stdClass();
                 $criterion->name = $critname;
-                $criterion->description = $data->assignfeedback_structured_critdesc[$key];
+                $criterion->description = $critdesc;
                 if ($critid = $DB->insert_record('assignfeedback_structured_cr', $criterion)) {
                     $critids[] = $critid;
                 }
@@ -639,6 +640,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $critoptions['assignfeedback_structured_critname']['helpbutton'] = array('criteria', 'assignfeedback_structured');
         $critoptions['assignfeedback_structured_critname']['rule'] = array(null, 'maxlength', 255, 'client');
         $critoptions['assignfeedback_structured_critname']['type'] = PARAM_TEXT;
+        $critoptions['assignfeedback_structured_critdesc']['type'] = PARAM_TEXT;
         $critoptions['assignfeedback_structured_critid']['type'] = PARAM_INT;
 
         $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'crit_repeats',
