@@ -520,7 +520,8 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 }
             }
             // Reload the assignment config form so the user can review their new criteria set.
-            redirect(new moodle_url('/course/modedit.php', array('update' => $this->assignment->get_course_module()->id)));
+            redirect(new moodle_url('/course/modedit.php', array('update' => $data->coursemodule),
+                    'id_assignfeedback_structured_criteria'));
             return true;
         }
 
