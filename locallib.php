@@ -158,21 +158,21 @@ class assign_feedback_structured extends assign_feedback_plugin {
     /**
      * Return all saved criteria sets that the current user can copy into this plugin instance.
      *
-     * @return array Grouped list of criteria set names, indexed by id.
+     * @return array|string Grouped array of criteria sets, or an error string.
      */
     private function get_criteria_sets_for_user() {
         global $DB, $USER;
 
-        // Return nothing if the assignment is already using a saved set belonging to another user.
+        // Return an error if the assignment is already using a saved set belonging to another user.
         if ($this->is_immutable()) {
-            return array();
+            return get_string('criteriasetlocked', 'assignfeedback_structured');
         }
 
-        // Also return nothing if any criteria are defined and have feedback already.
+        // Return a different error if any criteria are defined and have feedback already.
         if ($criteria = $this->get_criteria()) {
             foreach ($criteria as $criterion) {
                 if ($this->is_criterion_used($criterion->id)) {
-                    return array();
+                    return get_string('criteriaused', 'assignfeedback_structured');
                 }
             }
         }
@@ -182,19 +182,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $params = array('setid' => $criteriasetid, 'user' => $USER->id);
 
         $select = "id <> :setid AND name <> '' AND owner = :user";
-        $ownedsets = $DB->get_records_select_menu('assignfeedback_structured_cs', $select, $params, 'name');
+        $ownedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
 
         $select = "id <> :setid AND name <> '' AND owner <> :user AND public = 1";
-        $publicsets = $DB->get_records_select_menu('assignfeedback_structured_cs', $select, $params, 'name');
+        $publicsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
 
         if ($ownedsets || $publicsets) {
-            $criteriasets[''] = array(get_string('criteriasetselect', 'assignfeedback_structured'));
-            if ($ownedsets) {
-                $criteriasets[get_string('criteriasetsowned', 'assignfeedback_structured')] = $ownedsets;
-            }
-            if ($publicsets) {
-                $criteriasets[get_string('criteriasetspublic', 'assignfeedback_structured')] = $publicsets;
-            }
+            $criteriasets['ownedSets'] = array_values($ownedsets);
+            $criteriasets['publicSets'] = array_values($publicsets);
         }
 
         return $criteriasets;
@@ -224,7 +219,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @param int $criteriasetid The id of a criteria set.
      * @return array Correctly ordered array of criterion records.
      */
-    private function get_criteria($criteriasetid = 0) {
+    public function get_criteria($criteriasetid = 0) {
         global $DB;
 
         if (!$criteriaset = $this->get_criteria_set($criteriasetid)) {
@@ -239,6 +234,26 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         // Return them in the right order.
         return array_replace(array_flip($criterionids), $criteria);
+    }
+
+    /**
+     * Build an array of criterion objects from a saved criteria set to populate the config fields.
+     *
+     * @param array $criteria The criteria for the selected criteria set.
+     * @return array The objects for the config form.
+     */
+    public function build_criteria_config($criteria) {
+        $config = array();
+        foreach ($criteria as $criterion) {
+            $criterion->assignfeedback_structured_critname = $criterion->name;
+            $criterion->assignfeedback_structured_critdesc = $criterion->description;
+            unset($criterion->id);
+            unset($criterion->name);
+            unset($criterion->description);
+            $config[] = $criterion;
+        }
+
+        return $config;
     }
 
     /**
@@ -488,43 +503,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
             return true;
         }
 
-        // Check if a saved criteria set has been copied.
-        if (isset($data->assignfeedback_structured_critset_copy) && !empty($data->assignfeedback_structured_critset_select)) {
-            // Get the current criteria set and criteria for deletion later.
-            if ($criteriaset = $this->get_criteria_set()) {
-                $criteria = $this->get_criteria($criteriaset->id);
-            }
-            if ($savedcriteria = $this->get_criteria($data->assignfeedback_structured_critset_select)) {
-                // Duplicate the saved criteria and criteria set for this instance.
-                $critids = array();
-                foreach ($savedcriteria as $savedcriterion) {
-                    $dupcriterion = new stdClass();
-                    $dupcriterion->name = $savedcriterion->name;
-                    $dupcriterion->description = $savedcriterion->description;
-                    if ($critid = $DB->insert_record('assignfeedback_structured_cr', $dupcriterion)) {
-                        $critids[] = $critid;
-                    }
-                }
-                $dupcriteriaset = new stdClass();
-                $dupcriteriaset->name = '';
-                $dupcriteriaset->criteria = implode(',', $critids);
-                $dupcriteriaset->owner = $USER->id;
-                $dupcriteriaset->public = 0;
-                if ($dupcriteriaset->id = $DB->insert_record('assignfeedback_structured_cs', $dupcriteriaset)) {
-                    $this->set_config('criteriaset', $dupcriteriaset->id);
-                }
-                // Finally, delete any old criteria and their corresponding criteria set.
-                if (!empty($criteria)) {
-                    $DB->delete_records_list('assignfeedback_structured_cr', 'id', array_keys($criteria));
-                    $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriaset->id));
-                }
-            }
-            // Reload the assignment config form so the user can review their new criteria set.
-            redirect(new moodle_url('/course/modedit.php', array('update' => $data->coursemodule),
-                    'id_assignfeedback_structured_criteria'));
-            return true;
-        }
-
         // Update any existing criteria or create new ones.
         $criteria = $this->get_criteria();
         $critids = array();
@@ -602,20 +580,26 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return void
      */
     public function get_settings(MoodleQuickForm $mform) {
-        global $USER;
+        global $PAGE, $USER;
 
         $mform->addElement('header', 'assignfeedback_structured_criteria', get_string('criteria', 'assignfeedback_structured'));
 
+        $criteriasetbutton = $mform->addElement('button', 'assignfeedback_structured_critset',
+                get_string('criteriasetusesaved', 'assignfeedback_structured'));
+        $criteriasetbutton->setLabel(get_string('criteriaset', 'assignfeedback_structured'));
+        $mform->addHelpButton('assignfeedback_structured_critset', 'criteriaset', 'assignfeedback_structured');
+
         // Check if there are any saved criteria sets that can be used here.
-        if ($criteriasets = $this->get_criteria_sets_for_user()) {
-            $critsetsgrp = array();
-            $critsetsgrp[] = $mform->createElement('selectgroups', 'assignfeedback_structured_critset_select', '', $criteriasets);
-            $critsetsgrp[] = $mform->createElement('submit', 'assignfeedback_structured_critset_copy',
-                    get_string('copycriteriaset', 'assignfeedback_structured'));
-            $mform->addGroup($critsetsgrp, 'assignfeedback_structured_critset',
-                    get_string('criteriaset', 'assignfeedback_structured'), null, false);
-            $mform->addHelpButton('assignfeedback_structured_critset', 'criteriaset', 'assignfeedback_structured');
-            $mform->disabledIf('assignfeedback_structured_critset_copy', 'assignfeedback_structured_critset_select', 'eq', 0);
+        if (is_array($criteriasets = $this->get_criteria_sets_for_user())) {
+            $critsetposturl = new moodle_url('/mod/assign/feedback/structured/criteriaset.php');
+            $params = array_merge(array(
+                'contextid' => $this->get_context()->id,
+                'posturl'   => $critsetposturl->out(false)
+            ), $criteriasets);
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriaset', 'init', $params);
+        } else {
+            $mform->updateElementAttr('assignfeedback_structured_critset',
+                    array('title' => $criteriasets, 'disabled' => 'disabled'));
         }
 
         $critelements = array();
@@ -637,21 +621,21 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $critoptions = array();
-        $critoptions['assignfeedback_structured_critname']['helpbutton'] = array('criteria', 'assignfeedback_structured');
         $critoptions['assignfeedback_structured_critname']['rule'] = array(null, 'maxlength', 255, 'client');
         $critoptions['assignfeedback_structured_critname']['type'] = PARAM_TEXT;
         $critoptions['assignfeedback_structured_critdesc']['type'] = PARAM_TEXT;
         $critoptions['assignfeedback_structured_critid']['type'] = PARAM_INT;
 
-        $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'crit_repeats',
-                'assignfeedback_structured_critadd', 3, get_string('addcriteria', 'assignfeedback_structured'), true);
+        $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'assignfeedback_structured_repeats',
+                'assignfeedback_structured_critfieldsadd', 3, get_string('criteriafieldsadd', 'assignfeedback_structured'), true);
         $lastfield = 'assignfeedback_structured_critname[' . ($critfields - 1) . ']';
-        $mform->disabledIf('assignfeedback_structured_critadd', $lastfield, 'eq', '');
+        $mform->disabledIf('assignfeedback_structured_critfieldsadd', $lastfield, 'eq', '');
+        $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
 
         // Enable teachers to save criteria sets for use in other assignments.
         $mform->addElement('advcheckbox', 'assignfeedback_structured_saveset',
-                get_string('savecriteriaset', 'assignfeedback_structured'));
-        $mform->addHelpButton('assignfeedback_structured_saveset', 'savecriteriaset', 'assignfeedback_structured');
+                get_string('criteriasetsave', 'assignfeedback_structured'));
+        $mform->addHelpButton('assignfeedback_structured_saveset', 'criteriasetsave', 'assignfeedback_structured');
         $mform->setAdvanced('assignfeedback_structured_saveset');
         $mform->disabledIf('assignfeedback_structured_saveset', 'assignfeedback_structured_critname[0]', 'eq', '');
         $mform->addElement('text', 'assignfeedback_structured_setname', get_string('criteriasetname', 'assignfeedback_structured'),
@@ -711,7 +695,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                         'assignfeedback_structured_saveset',
                         'assignfeedback_structured_setname',
                         'assignfeedback_structured_setpublic',
-                        'assignfeedback_structured_critadd'
+                        'assignfeedback_structured_critfieldsadd'
                     );
                     $mform->freeze($elements);
                     $mform->updateElementAttr($elements,
@@ -766,12 +750,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         if (is_a($elementclone, 'HTML_QuickForm_header')) {
             $value = $elementclone->_text;
-            $elementclone->setValue(str_replace('{no}', ($i + 1), $value));
+            $elementclone->setValue(str_replace('{$a}', ($i + 1), $value));
         } else if (is_a($elementclone, 'HTML_QuickForm_submit') || is_a($elementclone, 'HTML_QuickForm_button')) {
-            $elementclone->setValue(str_replace('{no}', ($i + 1), $elementclone->getValue()));
+            $elementclone->setValue(str_replace('{$a}', ($i + 1), $elementclone->getValue()));
         } else {
             $value = $elementclone->getLabel();
-            $elementclone->setLabel(str_replace('{no}', ($i + 1), $value));
+            $elementclone->setLabel(str_replace('{$a}', ($i + 1), $value));
         }
     }
 
@@ -784,7 +768,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @param array $options a nested array. The first array key is the element name.
      *    the second array key is the type of option to set, and depend on that option,
      *    the value takes different forms.
-     *         'default'    - default value to set. Can include '{no}' which is replaced by the repeat number.
+     *         'default'    - default value to set. Can include '{$a}' which is replaced by the repeat number.
      *         'type'       - PARAM_* type.
      *         'helpbutton' - array containing the helpbutton params.
      *         'disabledif' - array containing the disabledIf() arguments after the element name.
@@ -794,7 +778,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @param string $repeathiddenname name for hidden element storing no of repeats in this form
      * @param string $addfieldsname name for button to add more fields
      * @param int $addfieldsno how many fields to add at a time
-     * @param string $addstring name of button, {no} is replaced by no of blanks that will be added.
+     * @param string $addstring name of button, {$a} is replaced by no of blanks that will be added.
      * @param bool $addbuttoninside if true, don't call closeHeaderBefore($addfieldsname). Default false.
      * @return int no of repeats of element in this page
      */
@@ -803,7 +787,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         if ($addstring === null) {
             $addstring = get_string('addfields', 'form', $addfieldsno);
         } else {
-            $addstring = str_ireplace('{no}', $addfieldsno, $addstring);
+            $addstring = str_ireplace('{$a}', $addfieldsno, $addstring);
         }
         $repeats = optional_param($repeathiddenname, $repeats, PARAM_INT);
         $addfields = optional_param($addfieldsname, '', PARAM_TEXT);
@@ -825,7 +809,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                     foreach ($elementclone->getElements() as $el) {
                         $this->repeat_elements_fix_clone($i, $el, $namecloned);
                     }
-                    $elementclone->setLabel(str_replace('{no}', $i + 1, $elementclone->getLabel()));
+                    $elementclone->setLabel(str_replace('{$a}', $i + 1, $elementclone->getLabel()));
                 }
 
                 $mform->addElement($elementclone);
@@ -843,7 +827,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 foreach ($elementoptions as $option => $params) {
                     switch ($option){
                         case 'default':
-                            $mform->setDefault($realelementname, str_replace('{no}', $i + 1, $params));
+                            $mform->setDefault($realelementname, str_replace('{$a}', $i + 1, $params));
                             break;
                         case 'helpbutton':
                             $params = array_merge(array($realelementname), $params);

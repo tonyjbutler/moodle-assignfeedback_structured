@@ -23,12 +23,12 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
-$string['addcriteria'] = 'Add more criteria fields';
-$string['copycriteriaset'] = 'Copy criteria set';
 $string['criteria'] = 'Feedback criteria';
 $string['criteria_help'] = 'Enter a name and description for each criterion you want to provide feedback for. Any unnamed criteria will be ignored. Fields will be locked once there is feedback for a particular criterion.';
+$string['criteriafieldsadd'] = 'Add more criteria fields';
+$string['criteriaused'] = 'This criteria set cannot be edited because one of more of its criteria already have feedback';
 $string['criteriaset'] = 'Criteria set';
-$string['criteriaset_help'] = 'You may either select and copy a previously saved criteria set here, or define a custom set of criteria below. If you copy a saved set, any criteria already defined below will be overwritten.';
+$string['criteriaset_help'] = 'You may either click this button to select and copy a previously saved criteria set, or define a custom set of criteria below. If you copy a saved set, any criteria already defined below will be overwritten.';
 $string['criteriasetlocked'] = 'You cannot edit this criteria set because it was defined and saved by another user';
 $string['criteriasetname'] = 'Criteria set name';
 $string['criteriasetname_help'] = 'The name of a criteria set must be unique across the whole site, so please choose it carefully.';
@@ -36,20 +36,24 @@ $string['criteriasetnameused'] = 'Unfortunately this name is already used for an
 $string['criteriasetnotowned'] = 'You cannot save this criteria set because it was defined by another user';
 $string['criteriasetpublic'] = 'Make available to other users';
 $string['criteriasetpublic_help'] = 'Tick this box to enable anyone to make a copy of this criteria set. By default it is available only to the user who created it.';
-$string['criteriasetselect'] = 'Select a saved criteria set to copy ...';
+$string['criteriasetsave'] = 'Save criteria set';
+$string['criteriasetsave_help'] = 'Tick this box and provide a unique name for your criteria set to enable it to be copied easily into other assignments. Once it is saved, other users will be unable to edit its criteria.<br><br>Please note that you can only save your own criteria sets (unless you have been granted a special permission).';
+$string['criteriasetselect'] = 'Select a criteria set ...';
 $string['criteriasetsowned'] = 'Your criteria sets';
 $string['criteriasetspublic'] = 'Shared criteria sets';
-$string['criteriondesc'] = 'Criterion {no} description';
-$string['criterionname'] = 'Criterion {no} name';
+$string['criteriasetuse'] = 'Use this criteria set';
+$string['criteriasetusesaved'] = 'Use a saved criteria set';
+$string['criteriondesc'] = 'Criterion {$a} description';
+$string['criterionname'] = 'Criterion {$a} name';
 $string['criteriontitle'] = '{$a->name}: <span style="font-style: italic;">{$a->desc}</span>';
 $string['criterionused'] = 'This criterion cannot be edited because it already has feedback';
 $string['default'] = 'Enabled by default';
 $string['default_help'] = 'If set, this feedback method will be enabled by default for all new assignments.';
 $string['enabled'] = 'Structured feedback';
 $string['enabled_help'] = 'If enabled, the teacher will be able to define any number of criteria on which to provide specific feedback.';
+$string['noownedsets'] = 'You don\'t have any saved criteria sets';
+$string['nopublicsets'] = 'There are no shared criteria sets';
 $string['pluginname'] = 'Structured feedback';
-$string['savecriteriaset'] = 'Save criteria set';
-$string['savecriteriaset_help'] = 'Tick this box and provide a unique name for your criteria set to enable it to be copied easily into other assignments. Once it is saved, other users will be unable to edit its criteria.<br><br>Please note that you can only save your own criteria sets (unless you have been granted a special permission).';
 $string['structured:editanycriteriaset'] = 'Edit/save criteria sets owned by other users';
 $string['structured:publishcriteriasets'] = 'Make saved criteria sets available to other users';
 $string['structuredfilename'] = 'structured.html';

@@ -1,0 +1,84 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template assignfeedback_structured/criteriafields
+
+    Provides a template for appending additional criteria config fields to be populated from the criteria set selector modal.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * lastFieldIndex The index of the last criterion field already in the form.
+    * lastCritIndex The index of the last criterion already in the form.
+    * newIndexes The indexes of the new fields and criteria being added.
+
+    Example context (json):
+    {
+        "lastFieldIndex": "4",
+        "lastCritIndex": "5",
+        "newIndexes": [
+            {
+                "fieldIndex": "5",
+                "critIndex": "6"
+            },
+            {
+                "fieldIndex": "6",
+                "critIndex": "7"
+            }
+        ]
+    }
+
+}}
+<div id="fitem_id_assignfeedback_structured_critdesc_{{lastFieldIndex}}" class="fitem fitem_ftextarea">
+    <div class="fitemtitle">
+        <label for="id_assignfeedback_structured_critdesc_{{lastFieldIndex}}">
+            {{#str}} criteriondesc, assignfeedback_structured, {{lastCritIndex}} {{/str}}
+        </label>
+    </div>
+    <div class="felement ftextarea" data-fieldtype="textarea">
+        <textarea rows="4" cols="64" name="assignfeedback_structured_critdesc[{{lastFieldIndex}}]"
+                  id="id_assignfeedback_structured_critdesc_{{lastFieldIndex}}"></textarea>
+    </div>
+</div>
+{{#newIndexes}}
+    <div id="fitem_id_assignfeedback_structured_critname_{{fieldIndex}}" class="fitem fitem_ftext">
+        <div class="fitemtitle">
+            <label for="id_assignfeedback_structured_critname_{{fieldIndex}}">
+                {{#str}} criterionname, assignfeedback_structured, {{critIndex}} {{/str}}
+            </label>
+        </div>
+        <div class="felement ftext" data-fieldtype="text">
+            <input size="64" maxlength="255" name="assignfeedback_structured_critname[{{fieldIndex}}]" type="text"
+                   id="id_assignfeedback_structured_critname_{{fieldIndex}}">
+        </div>
+    </div>
+    <div id="fitem_id_assignfeedback_structured_critdesc_{{fieldIndex}}" class="fitem fitem_ftextarea">
+        <div class="fitemtitle">
+            <label for="id_assignfeedback_structured_critdesc_{{fieldIndex}}">
+                {{#str}} criteriondesc, assignfeedback_structured, {{critIndex}} {{/str}}
+            </label>
+        </div>
+        <div class="felement ftextarea" data-fieldtype="textarea">
+            <textarea rows="4" cols="64" name="assignfeedback_structured_critdesc[{{fieldIndex}}]"
+                      id="id_assignfeedback_structured_critdesc_{{fieldIndex}}"></textarea>
+        </div>
+    </div>
+{{/newIndexes}}
