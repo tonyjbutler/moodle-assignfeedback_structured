@@ -87,7 +87,7 @@
         </div>
         <iframe id="criteria-data-iframe" name="criteria-data-iframe" class="hidden" tabindex="0">
         </iframe>
-        <div class="text-center">
+        <div class="text-center text-sm-center">
             <button id="criteria-use-button" type="button" class="btn btn-primary hidden">
                 {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
             </button>
@@ -112,7 +112,7 @@
         iframe.on('load', function() {
             loadingContainer.addClass('hidden');
             iframe.removeClass('hidden');
-            iframe.css({border: 'none', marginBottom: '10px'});
+            iframe.css({border: 'none', margin: '10px 0'});
 
             // Adjust iframe's width to the fit the container's width.
             var containerWidth = $('div.criteriaset-container').width();

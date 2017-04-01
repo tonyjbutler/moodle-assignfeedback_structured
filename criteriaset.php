@@ -30,7 +30,7 @@ require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 require_login($COURSE);
 $pageurl = new moodle_url('/mod/assign/feedback/structured/criteriaset.php');
 $PAGE->set_url($pageurl);
-$PAGE->set_pagelayout('popup');
+$PAGE->set_pagelayout('embedded');
 
 $context = required_param('context', PARAM_INT);
 $criteriaset = required_param('criteriaset', PARAM_INT);
