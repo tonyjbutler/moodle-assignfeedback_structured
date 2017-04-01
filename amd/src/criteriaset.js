@@ -59,17 +59,19 @@ define(
                     };
 
                     var body = templates.render('assignfeedback_structured/criteriaset', context);
+                    var footer = templates.render('assignfeedback_structured/criteriaset_footer', []);
                     if (dialogue) {
-                        // Set dialogue body.
+                        // Set dialogue body and footer.
                         dialogue.setBody(body);
+                        dialogue.setFooter(footer);
                         // Display the dialogue.
                         dialogue.show();
                     } else {
                         var trigger = $('#id_assignfeedback_structured_critset');
                         ModalFactory.create({
-                            type: ModalFactory.types.CANCEL,
                             title: dialogueTitle,
                             body: body,
+                            footer: footer,
                             large: false
                         }, trigger).done(function(modal) {
                             dialogue = modal;

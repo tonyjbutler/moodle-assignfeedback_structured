@@ -32,7 +32,7 @@ define(['jquery'], function($) {
          * @param {string} configData The config data.
          */
         init: function(configData) {
-            $('#criteria-use-button', window.parent.document).on('click', function() {
+            $('#criteriaset-use-button', window.parent.document).on('click', function() {
                 // Make sure the window has loaded before we perform processing.
                 $(window).ready(function() {
                     if (window != top) {
