@@ -114,7 +114,8 @@ define(
             };
 
             // First, append any additional criteria config fields as necessary.
-            var critFields = parseInt($('[name="assignfeedback_structured_repeats"]').val(), 10);
+            var repeats = $('[name="assignfeedback_structured_repeats"]');
+            var critFields = parseInt(repeats.val(), 10);
             if (configData.length > critFields) {
                 var newIndexes = [];
                 for (var i = critFields; i < configData.length; i++) {
@@ -131,11 +132,10 @@ define(
                     newIndexes: newIndexes
                 };
                 var lastFieldId = 'id_assignfeedback_structured_critdesc_' + (critFields - 1);
-                var lastNode, templateName;
-                if ($('#fitem_' + lastFieldId).length) {
-                    lastNode = $('#fitem_' + lastFieldId);
-                    templateName = 'assignfeedback_structured/criterianodes';
-                } else {
+                var lastNode = $('#fitem_' + lastFieldId);
+                var templateName = 'assignfeedback_structured/criterianodes';
+                // Deal with missing form element IDs in Boost.
+                if (!lastNode.length) {
                     lastNode = $('#' + lastFieldId).parent().parent();
                     templateName = 'assignfeedback_structured/criterianodes_boost';
                 }
@@ -144,12 +144,12 @@ define(
                     populateFields();
                 });
                 // Set number of repeats to new value.
-                $('[name="assignfeedback_structured_repeats"]').val(configData.length);
+                repeats.val(configData.length);
             } else {
-                for (var i = 0; i < critFields; i++) {
+                for (var j = 0; j < critFields; j++) {
                     // Clear any existing data.
-                    $('#id_assignfeedback_structured_critname_' + i).val('');
-                    $('#id_assignfeedback_structured_critdesc_' + i).val('');
+                    $('#id_assignfeedback_structured_critname_' + j).val('');
+                    $('#id_assignfeedback_structured_critdesc_' + j).val('');
                 }
                 populateFields();
                 // Freeze 'add criteria fields' button.
