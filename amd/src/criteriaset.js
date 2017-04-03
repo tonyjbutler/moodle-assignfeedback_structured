@@ -17,7 +17,8 @@
  * Launches the modal dialogue that contains the criteria set selector for the structured feedback plugin.
  *
  * See templates: assignfeedback_structured/criteriaset
- *                assignfeedback_structured/criteriafields
+ *                assignfeedback_structured/criterianodes
+ *                assignfeedback_structured/criterianodes_boost
  *
  * @module     assignfeedback_structured/criteriaset
  * @class      criteriaset
@@ -106,8 +107,8 @@ define(
             var populateFields = function() {
                 $.each(configData, function(index, criterion) {
                     $.each(criterion, function(fieldName, value) {
-                        var selector = '#id_' + fieldName + '_' + index;
-                        $(selector).val(value);
+                        var field = '#id_' + fieldName + '_' + index;
+                        $(field).val(value);
                     });
                 });
             };
@@ -121,18 +122,25 @@ define(
                     var idField = $('[name="assignfeedback_structured_critid[' + (i - 1) + ']"]');
                     var name = 'assignfeedback_structured_critid[' + i + ']';
                     idField.clone().attr({name: name, value: '0'}).insertAfter(idField);
-                    newIndexes.push({'fieldIndex': i, 'critIndex': i + 1});
+                    newIndexes.push({'nodeIndex': i, 'critIndex': i + 1});
                 }
                 // Use a template to deal with name and description fields.
                 var context = {
-                    lastFieldIndex: critFields - 1,
+                    lastNodeIndex: critFields - 1,
                     lastCritIndex: critFields,
                     newIndexes: newIndexes
                 };
-                var newFields = templates.render('assignfeedback_structured/criteriafields', context);
-                var lastField = '#fitem_id_assignfeedback_structured_critdesc_' + (critFields - 1);
-                newFields.done(function(html, js) {
-                    templates.replaceNode(lastField, html, js);
+                var lastFieldId = 'id_assignfeedback_structured_critdesc_' + (critFields - 1);
+                var lastNode, templateName;
+                if ($('#fitem_' + lastFieldId).length) {
+                    lastNode = $('#fitem_' + lastFieldId);
+                    templateName = 'assignfeedback_structured/criterianodes';
+                } else {
+                    lastNode = $('#' + lastFieldId).parent().parent();
+                    templateName = 'assignfeedback_structured/criterianodes_boost';
+                }
+                templates.render(templateName, context).done(function(html, js) {
+                    templates.replaceNode(lastNode, html, js);
                     populateFields();
                 });
                 // Set number of repeats to new value.

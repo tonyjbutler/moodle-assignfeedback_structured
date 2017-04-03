@@ -1,0 +1,84 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template assignfeedback_structured/criterianodes
+
+    Provides a template for appending additional criteria config fields to be populated from the criteria set selector modal.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * lastNodeIndex The index of the node containing the last criterion field currently in the form.
+    * lastCritIndex The index of the last criterion currently in the form.
+    * newIndexes The indexes of the new nodes and criteria being added.
+
+    Example context (json):
+    {
+        "lastNodeIndex": "4",
+        "lastCritIndex": "5",
+        "newIndexes": [
+            {
+                "nodeIndex": "5",
+                "critIndex": "6"
+            },
+            {
+                "nodeIndex": "6",
+                "critIndex": "7"
+            }
+        ]
+    }
+
+}}
+<div class="form-group row fitem">
+    <div class="col-md-3">
+        <label class="col-form-label d-inline" for="id_assignfeedback_structured_critdesc_{{lastNodeIndex}}">
+            {{#str}} criteriondesc, assignfeedback_structured, {{lastCritIndex}} {{/str}}
+        </label>
+    </div>
+    <div class="col-md-9 form-inline felement" data-fieldtype="textarea">
+        <textarea name="assignfeedback_structured_critdesc[{{lastNodeIndex}}]"
+                  id="id_assignfeedback_structured_critdesc_{{lastNodeIndex}}" class="form-control" rows="4" cols="64"></textarea>
+    </div>
+</div>
+{{#newIndexes}}
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label class="col-form-label d-inline" for="id_assignfeedback_structured_critname_{{nodeIndex}}">
+                {{#str}} criterionname, assignfeedback_structured, {{critIndex}} {{/str}}
+            </label>
+        </div>
+        <div class="col-md-9 form-inline felement" data-fieldtype="text">
+            <input type="text" class="form-control" name="assignfeedback_structured_critname[{{nodeIndex}}]"
+                   id="id_assignfeedback_structured_critname_{{nodeIndex}}" value="" size="64" maxlength="255">
+        </div>
+    </div>
+    <div class="form-group row fitem">
+        <div class="col-md-3">
+            <label class="col-form-label d-inline" for="id_assignfeedback_structured_critdesc_{{nodeIndex}}">
+                {{#str}} criteriondesc, assignfeedback_structured, {{critIndex}} {{/str}}
+            </label>
+        </div>
+        <div class="col-md-9 form-inline felement" data-fieldtype="textarea">
+            <textarea name="assignfeedback_structured_critdesc[{{nodeIndex}}]"
+                      id="id_assignfeedback_structured_critdesc_{{nodeIndex}}" class="form-control" rows="4" cols="64"></textarea>
+        </div>
+    </div>
+{{/newIndexes}}
