@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file contains the version information for the structured feedback plugin.
+ * Web service for the structured feedback plugin.
  *
  * @package   assignfeedback_structured
  * @copyright 2017 Lancaster University {@link http://www.lancaster.ac.uk/}
@@ -23,8 +23,14 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->version   = 2017042500;
-$plugin->requires  = 2016051900;
-$plugin->component = 'assignfeedback_structured';
+$functions = array(
+    'assignfeedback_structured_delete_criteriaset' => array(
+        'classname'     => 'assignfeedback_structured_external',
+        'methodname'    => 'delete_criteriaset',
+        'classpath'     => 'mod/assign/feedback/structured/externallib.php',
+        'description'   => 'Delete a saved criteria set',
+        'type'          => 'write',
+        'ajax'          => true,
+        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets'
+    )
+);

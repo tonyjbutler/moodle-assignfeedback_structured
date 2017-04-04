@@ -31,6 +31,13 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
+    'assignfeedback/structured:manageowncriteriasets' => array(
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'editingteacher' => CAP_ALLOW
+        )
+    ),
     'assignfeedback/structured:publishcriteriasets' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,

@@ -1,0 +1,111 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template assignfeedback_structured/criteriasetsmanage
+
+    Provides a template for the structured feedback plugin's criteria set management modal.
+
+    Classes required for JS:
+    * none
+
+    Data attributes required for JS:
+    * none
+
+    Context variables required for this template:
+    * contextId The context ID of the current assignment instance.
+    * criteriaSets An array of data objects for all saved criteria sets owned by the current user.
+
+    Example context (json):
+    {
+        "contextId": "1",
+        "criteriaSets": [
+            {
+                "id": "1",
+                "name": "Criteria set 1"
+            },
+            {
+                "id": "2",
+                "name": "Criteria set 2"
+            }
+        ]
+    }
+
+}}
+<div id="criteriasets-manage-container" class="criteriasets-manage-container">
+    <div class="criteriasets-manage-page">
+        {{#criteriaSets}}
+            <div class="criteriaset-row" style="padding: 3px 0;">
+                <div class="pull-xs-left" style="max-width: 80%;">{{name}}</div>
+                <div class="pull-xs-right">
+                    <span class="loading hidden">{{#pix}} i/loading, core, Loading {{/pix}}</span>
+                    <button type="button" class="criteriaset-delete-button btn btn-primary" data-context="{{contextId}}"
+                            data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
+                        {{#str}} delete {{/str}}
+                    </button>
+                </div>
+                <div class="clearer"></div>
+            </div>
+        {{/criteriaSets}}
+    </div>
+</div>
+{{#js}}
+    require(['jquery', 'core/ajax', 'core/notification', 'core/str'], function($, ajax, notification, str) {
+        var deleteButton = $('.criteriaset-delete-button');
+
+        // Delete criteria set.
+        deleteButton.on('click', function() {
+            var button = $(this);
+            str.get_strings([
+                {'key': 'delete'},
+                {'key': 'criteriasetconfirmdelete', component: 'assignfeedback_structured', param: button.data('criteriaset-name')},
+                {'key': 'yes'},
+                {'key': 'no'},
+                {'key': 'error'},
+                {'key': 'criteriasetnotdeleted', component: 'assignfeedback_structured', param: button.data('criteriaset-name')},
+                {'key': 'continue'}
+            ]).done(function(s) {
+                notification.confirm(s[0], s[1], s[2], s[3], function() {
+                    deleteSet($, ajax, notification, button, s[4], s[5], s[6]);
+                });
+            }).fail(notification.exception);
+        });
+
+        function deleteSet($, ajax, notification, button, title, body, label) {
+            button.prev('.loading').removeClass('hidden');
+            var setId = button.data('criteriaset-id'),
+                contextId = button.data('context'),
+                request = ajax.call([{
+                methodname: 'assignfeedback_structured_delete_criteriaset',
+                args: {
+                    criteriasetid: setId,
+                    contextid: contextId
+                }
+            }]);
+
+            request[0].done(function(response) {
+                if (response === true) {
+                    button.parent().parent('.criteriaset-row').addClass('hidden');
+                } else {
+                    notification.alert(title, body, label);
+                }
+            }).fail(notification.exception)
+            .always(function() {
+                button.prev('.loading').addClass('hidden');
+            });
+        };
+    });
+{{/js}}

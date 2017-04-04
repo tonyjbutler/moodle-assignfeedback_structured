@@ -158,18 +158,19 @@ class assign_feedback_structured extends assign_feedback_plugin {
     /**
      * Return all saved criteria sets that the current user can copy into this plugin instance.
      *
+     * @param bool $includepublic Include shared criteria sets owned by other users.
      * @return array|string Grouped array of criteria sets, or an error string.
      */
-    private function get_criteria_sets_for_user() {
+    private function get_criteria_sets_for_user($includepublic = false) {
         global $DB, $USER;
 
         // Return an error if the assignment is already using a saved set belonging to another user.
-        if ($this->is_immutable()) {
+        if ($this->is_immutable() && $includepublic) {
             return get_string('criteriasetlocked', 'assignfeedback_structured');
         }
 
         // Return a different error if any criteria are defined and have feedback already.
-        if ($criteria = $this->get_criteria()) {
+        if ($criteria = $this->get_criteria() and $includepublic) {
             foreach ($criteria as $criterion) {
                 if ($this->is_criterion_used($criterion->id)) {
                     return get_string('criteriaused', 'assignfeedback_structured');
@@ -178,21 +179,72 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $criteriasets = array();
-        $criteriasetid = $this->get_criteria_set_id();
-        $params = array('setid' => $criteriasetid, 'user' => $USER->id);
+        $params = array('user' => $USER->id);
 
-        $select = "id <> :setid AND name <> '' AND owner = :user";
+        $select = "name <> ''";
+        if (!has_capability('moodle/site:config', context_system::instance()) || $includepublic) {
+            $select .= " AND owner = :user";
+        }
         $ownedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
-
-        $select = "id <> :setid AND name <> '' AND owner <> :user AND public = 1";
-        $publicsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
-
-        if ($ownedsets || $publicsets) {
+        if ($ownedsets) {
             $criteriasets['ownedSets'] = array_values($ownedsets);
-            $criteriasets['publicSets'] = array_values($publicsets);
+        }
+
+        if ($includepublic) {
+            $select = "name <> '' AND owner <> :user AND public = 1";
+            $publicsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
+            if ($publicsets) {
+                $criteriasets['publicSets'] = array_values($publicsets);
+            }
         }
 
         return $criteriasets;
+    }
+
+    /**
+     * Delete the saved criteria set with the given id, provided it isn't used in an assignment.
+     *
+     * @param int $criteriasetid The id of the criteria set to be deleted.
+     * @return bool Success status.
+     */
+    public function delete_criteria_set($criteriasetid) {
+        global $DB, $USER;
+
+        // A criteria set id must be provided.
+        if (empty($criteriasetid)) {
+            return false;
+        }
+
+        // Don't delete the criteria set if it is used in an assignment.
+        $select = "plugin = :type AND subtype = :subtype AND name = :name AND value = :value";
+        $params = array(
+            'type'    => $this->get_type(),
+            'subtype' => $this->get_subtype(),
+            'name'    => 'criteriaset',
+            'value'   => $criteriasetid
+        );
+        if ($DB->record_exists_select('assign_plugin_config', $select, $params)) {
+            return false;
+        }
+
+        if (!$criteriaset = $this->get_criteria_set($criteriasetid)) {
+            return false;
+        }
+
+        // Make sure user has the appropriate permissions to delete.
+        if (!has_capability('moodle/site:config', context_system::instance())) {
+            if ($criteriaset->owner != $USER->id ||
+                    !has_capability('assignfeedback/structured:manageowncriteriasets', $this->get_context())) {
+                return false;
+            }
+        }
+
+        // Delete the criteria set and its criteria.
+        $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriasetid));
+        $criterionids = explode(',', $criteriaset->criteria);
+        $DB->delete_records_list('assignfeedback_structured_cr', 'id', $criterionids);
+
+        return true;
     }
 
     /**
@@ -590,7 +642,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->addHelpButton('assignfeedback_structured_critset', 'criteriaset', 'assignfeedback_structured');
 
         // Check if there are any saved criteria sets that can be used here.
-        if (is_array($criteriasets = $this->get_criteria_sets_for_user())) {
+        if (is_array($criteriasets = $this->get_criteria_sets_for_user(true))) {
             $critsetposturl = new moodle_url('/mod/assign/feedback/structured/criteriaset.php');
             $params = array_merge(array(
                 'contextid' => $this->get_context()->id,
@@ -657,6 +709,19 @@ class assign_feedback_structured extends assign_feedback_plugin {
         } else {
             $mform->addElement('hidden', 'assignfeedback_structured_setpublic', 0);
             $mform->setType('assignfeedback_structured_setpublic', PARAM_INT);
+        }
+        $criteriasetsmanagebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsmanage',
+                get_string('criteriasetsmanage', 'assignfeedback_structured'));
+        $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
+        $mform->addHelpButton('assignfeedback_structured_critsetsmanage', 'criteriasetsmanage', 'assignfeedback_structured');
+        $mform->setAdvanced('assignfeedback_structured_critsetsmanage');
+        if ($criteriasets = $this->get_criteria_sets_for_user(false)) {
+            $params = array_merge(array(
+                'contextid' => $this->get_context()->id
+            ), $criteriasets);
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsmanage', 'init', $params);
+        } else {
+            $mform->updateElementAttr('assignfeedback_structured_critsetsmanage', array('disabled' => 'disabled'));
         }
 
         // If this is not the last feedback plugin, add a section to contain the settings for the rest.
