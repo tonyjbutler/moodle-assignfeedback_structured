@@ -23,7 +23,7 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
-require_once('../../../../config.php');
+require_once(__DIR__ . '/../../../../config.php');
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
@@ -32,15 +32,16 @@ $pageurl = new moodle_url('/mod/assign/feedback/structured/criteriaset.php');
 $PAGE->set_url($pageurl);
 $PAGE->set_pagelayout('embedded');
 
-$context = required_param('context', PARAM_INT);
-$criteriaset = required_param('criteriaset', PARAM_INT);
+$contextid = required_param('context', PARAM_INT);
+$criteriasetid = required_param('criteriaset', PARAM_INT);
 
+$context = context::instance_by_id($contextid);
 $assignment = new assign($context, null, null);
 $feedback = new assign_feedback_structured($assignment, 'structured');
 
 // Get the criteria data for the selected criteria set.
-if ($criteriaset) {
-    $criteria = $feedback->get_criteria($criteriaset);
+if ($criteriasetid) {
+    $criteria = $feedback->get_criteria($criteriasetid);
 }
 
 if (!empty($criteria)) {
