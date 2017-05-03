@@ -24,6 +24,15 @@
  */
 
 $functions = array(
+    'assignfeedback_structured_save_criteriaset' => array(
+        'classname'     => 'assignfeedback_structured_external',
+        'methodname'    => 'save_criteriaset',
+        'classpath'     => 'mod/assign/feedback/structured/externallib.php',
+        'description'   => 'Save a criteria set to copy later',
+        'type'          => 'write',
+        'ajax'          => true,
+        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets'
+    ),
     'assignfeedback_structured_delete_criteriaset' => array(
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'delete_criteriaset',

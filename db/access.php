@@ -40,7 +40,7 @@ $capabilities = array(
     ),
     'assignfeedback/structured:publishcriteriasets' => array(
         'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
             'manager' => CAP_ALLOW
         )

@@ -202,6 +202,49 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
+     * Save a new named criteria set to copy later, using the data provided.
+     *
+     * @param string $name A name for the new criteria set.
+     * @param array $criteria The criteria data.
+     * @param bool $public Whether the new criteria set should be shared.
+     * @return bool Success status.
+     */
+    public function save_criteria_set($name, $criteria, $public) {
+        global $DB, $USER;
+
+        // Make sure user has the appropriate permissions to save.
+        if (!has_capability('assignfeedback/structured:manageowncriteriasets', $this->get_context())) {
+            return false;
+        }
+
+        // Save criteria and get ids.
+        $critids = array();
+        foreach ($criteria as $criterion) {
+            $crit = new stdClass();
+            $crit->name = $criterion['name'];
+            $crit->description = $criterion['description'];
+            if ($critid = $DB->insert_record('assignfeedback_structured_cr', $crit)) {
+                $critids[] = $critid;
+            }
+        }
+        if (!$critids) {
+            return false;
+        }
+
+        // Write the new criteria set to the database.
+        $criteriaset = new stdClass();
+        $criteriaset->name = $name;
+        $criteriaset->criteria = implode(',', $critids);
+        $criteriaset->owner = $USER->id;
+        $criteriaset->public = $public;
+        if (!$DB->insert_record('assignfeedback_structured_cs', $criteriaset)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Delete the saved criteria set with the given id, provided it isn't used in an assignment.
      *
      * @param int $criteriasetid The id of the criteria set to be deleted.
@@ -591,22 +634,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         // Update existing criteria set or create a new one.
         if (!empty($critids)) {
-            $saveset = !empty($data->assignfeedback_structured_saveset);
-            $setname = $saveset && !empty($data->assignfeedback_structured_setname) ? $data->assignfeedback_structured_setname : '';
-            $setpublic = $saveset && !empty($setname) && !empty($data->assignfeedback_structured_setpublic);
+            $criteria = implode(',', $critids);
             if ($criteriaset = $this->get_criteria_set()) {
-                $criteriaset->name = $setname;
-                $criteriaset->criteria = implode(',', $critids);
-                $criteriaset->public = $setpublic;
+                $criteriaset->criteria = $criteria;
                 if ($DB->update_record('assignfeedback_structured_cs', $criteriaset)) {
                     return true;
                 }
             }
             $criteriaset = new stdClass();
-            $criteriaset->name = $setname;
-            $criteriaset->criteria = implode(',', $critids);
+            $criteriaset->name = '';
+            $criteriaset->criteria = $criteria;
             $criteriaset->owner = $USER->id;
-            $criteriaset->public = $setpublic;
+            $criteriaset->public = false;
             if ($criteriaset->id = $DB->insert_record('assignfeedback_structured_cs', $criteriaset)) {
                 $this->set_config('criteriaset', $criteriaset->id);
             }
@@ -685,31 +724,19 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
 
         // Enable teachers to save criteria sets for use in other assignments.
-        $mform->addElement('advcheckbox', 'assignfeedback_structured_saveset',
+        $criteriasetsavebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsave',
                 get_string('criteriasetsave', 'assignfeedback_structured'));
-        $mform->addHelpButton('assignfeedback_structured_saveset', 'criteriasetsave', 'assignfeedback_structured');
-        $mform->setAdvanced('assignfeedback_structured_saveset');
-        $mform->disabledIf('assignfeedback_structured_saveset', 'assignfeedback_structured_critname[0]', 'eq', '');
-        $mform->addElement('text', 'assignfeedback_structured_setname', get_string('criteriasetname', 'assignfeedback_structured'),
-                array('size' => '64', 'maxlength' => '64'));
-        $mform->addHelpButton('assignfeedback_structured_setname', 'criteriasetname', 'assignfeedback_structured');
-        $mform->setAdvanced('assignfeedback_structured_setname');
-        $mform->setType('assignfeedback_structured_setname', PARAM_TEXT);
-        $mform->addRule('assignfeedback_structured_setname', null, 'maxlength', 64, 'client');
-        $mform->registerRule('validate_setname', 'callback', 'validate_setname', '\assign_feedback_structured');
-        $mform->addRule('assignfeedback_structured_setname', get_string('criteriasetnameused', 'assignfeedback_structured'),
-                'validate_setname', $this);
-        $mform->disabledIf('assignfeedback_structured_setname', 'assignfeedback_structured_saveset', 'notchecked');
-        if (has_capability('assignfeedback/structured:publishcriteriasets', $this->get_course_context())) {
-            $mform->addElement('advcheckbox', 'assignfeedback_structured_setpublic',
-                    get_string('criteriasetpublic', 'assignfeedback_structured'));
-            $mform->addHelpButton('assignfeedback_structured_setpublic', 'criteriasetpublic', 'assignfeedback_structured');
-            $mform->setAdvanced('assignfeedback_structured_setpublic');
-            $mform->disabledIf('assignfeedback_structured_setpublic', 'assignfeedback_structured_saveset', 'notchecked');
-        } else {
-            $mform->addElement('hidden', 'assignfeedback_structured_setpublic', 0);
-            $mform->setType('assignfeedback_structured_setpublic', PARAM_INT);
-        }
+        $criteriasetsavebutton->setLabel(get_string('criteriasetsave', 'assignfeedback_structured'));
+        $mform->addHelpButton('assignfeedback_structured_critsetsave', 'criteriasetsave', 'assignfeedback_structured');
+        $mform->setAdvanced('assignfeedback_structured_critsetsave');
+        $mform->disabledIf('assignfeedback_structured_critsetsave', 'assignfeedback_structured_critname[0]', 'eq', '');
+        $params = array(
+            'contextid'  => $this->get_context()->id,
+            'canpublish' => has_capability('assignfeedback/structured:publishcriteriasets', $this->get_context())
+        );
+        $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsave', 'init', $params);
+
+        // Enable teachers to manage their saved criteria sets.
         $criteriasetsmanagebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsmanage',
                 get_string('criteriasetsmanage', 'assignfeedback_structured'));
         $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
@@ -750,52 +777,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 }
             }
         }
-        if ($criteriaset = $this->get_criteria_set()) {
-            if ((!empty($criteriaset->name))) {
-                $mform->setDefault('assignfeedback_structured_saveset', 1);
-                $mform->setDefault('assignfeedback_structured_setname', $criteriaset->name);
-                $mform->setDefault('assignfeedback_structured_setpublic', $criteriaset->public);
-                if ($this->is_immutable()) {
-                    $elements = array(
-                        'assignfeedback_structured_saveset',
-                        'assignfeedback_structured_setname',
-                        'assignfeedback_structured_setpublic',
-                        'assignfeedback_structured_critfieldsadd'
-                    );
-                    $mform->freeze($elements);
-                    $mform->updateElementAttr($elements,
-                            array('title' => get_string('criteriasetlocked', 'assignfeedback_structured')));
-                }
-            } else if ($criteriaset->owner != $USER->id &&
-                    !has_capability('assignfeedback/structured:editanycriteriaset', $this->get_course_context())) {
-                $elements = array(
-                    'assignfeedback_structured_saveset',
-                    'assignfeedback_structured_setname',
-                    'assignfeedback_structured_setpublic'
-                );
-                $mform->freeze($elements);
-                $mform->updateElementAttr($elements,
-                        array('title' => get_string('criteriasetnotowned', 'assignfeedback_structured')));
-            }
-        }
-    }
-
-    /**
-     * Validate the criteria set name to make sure it is unique across the site.
-     *
-     * @param string $name Criteria set name entered.
-     * @param \assign_feedback_structured An instance of this feedback plugin.
-     * @return bool True if name is unique.
-     */
-    public static function validate_setname($name, $plugin) {
-        global $DB;
-
-        $criteriasetid = $plugin->get_criteria_set_id();
-
-        $select = "id <> :setid AND name = :name";
-        $params = array('setid' => $criteriasetid, 'name' => $name);
-
-        return !$DB->record_exists_select('assignfeedback_structured_cs', $select, $params);
     }
 
     /**
