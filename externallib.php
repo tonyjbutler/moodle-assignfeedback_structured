@@ -44,30 +44,30 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function delete_criteriaset_parameters() {
         return new external_function_parameters(
-                array(
-                    'criteriasetid' => new external_value(PARAM_INT, 'The ID of the criteria set to be deleted', VALUE_REQUIRED),
-                    'contextid'     => new external_value(PARAM_INT, 'The ID of the current assignment instance', VALUE_REQUIRED)
-                )
+            array(
+                'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
+                'criteriasetid' => new external_value(PARAM_INT, 'The ID of the criteria set to be deleted')
+            )
         );
     }
 
     /**
-     * Delete the saved criteria set with the given id, prompting for user confirmation first.
+     * Delete the saved criteria set with the given id.
      *
-     * @param int $criteriasetid The id of the criteria set to be deleted.
      * @param int $contextid The context id of the current assignment instance.
+     * @param int $criteriasetid The id of the criteria set to be deleted.
      * @return bool Success status.
      * @throws moodle_exception
      */
-    public static function delete_criteriaset($criteriasetid, $contextid) {
+    public static function delete_criteriaset($contextid, $criteriasetid) {
         global $CFG;
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
         $parameters = array(
-            'criteriasetid' => $criteriasetid,
-            'contextid'     => $contextid
+            'contextid'     => $contextid,
+            'criteriasetid' => $criteriasetid
         );
         self::validate_parameters(self::delete_criteriaset_parameters(), $parameters);
         $context = self::get_context_from_params(array('contextid' => $contextid));

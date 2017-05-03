@@ -20,10 +20,12 @@
     Provides a template for the structured feedback plugin's criteria set management modal.
 
     Classes required for JS:
-    * none
+    * criteriaset-delete-button
 
     Data attributes required for JS:
-    * none
+    * data-context
+    * data-criteriaset-id
+    * data-criteriaset-name
 
     Context variables required for this template:
     * contextId The context ID of the current assignment instance.
@@ -31,14 +33,14 @@
 
     Example context (json):
     {
-        "contextId": "1",
+        "contextId": 1,
         "criteriaSets": [
             {
-                "id": "1",
+                "id": 1,
                 "name": "Criteria set 1"
             },
             {
-                "id": "2",
+                "id": 2,
                 "name": "Criteria set 2"
             }
         ]
@@ -79,20 +81,20 @@
                 {'key': 'continue'}
             ]).done(function(s) {
                 notification.confirm(s[0], s[1], s[2], s[3], function() {
-                    deleteSet($, ajax, notification, button, s[4], s[5], s[6]);
+                    deleteSet(ajax, notification, button, s[4], s[5], s[6]);
                 });
             }).fail(notification.exception);
         });
 
-        function deleteSet($, ajax, notification, button, title, body, label) {
+        function deleteSet(ajax, notification, button, title, body, label) {
             button.prev('.loading').removeClass('hidden');
-            var setId = button.data('criteriaset-id'),
-                contextId = button.data('context'),
+            var contextId = button.data('context'),
+                setId = button.data('criteriaset-id'),
                 request = ajax.call([{
                 methodname: 'assignfeedback_structured_delete_criteriaset',
                 args: {
-                    criteriasetid: setId,
-                    contextid: contextId
+                    contextid: contextId,
+                    criteriasetid: setId
                 }
             }]);
 
@@ -106,6 +108,6 @@
             .always(function() {
                 button.prev('.loading').addClass('hidden');
             });
-        };
+        }
     });
 {{/js}}
