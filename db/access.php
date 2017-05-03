@@ -24,13 +24,6 @@
  */
 
 $capabilities = array(
-    'assignfeedback/structured:editanycriteriaset' => array(
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
     'assignfeedback/structured:manageowncriteriasets' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,

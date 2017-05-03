@@ -54,11 +54,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
     private $criteriasetid = 0;
 
     /**
-     * @var bool Whether the config of this plugin instance is protected from modification by the current user.
-     */
-    private $immutable = null;
-
-    /**
      * Cache and return the assignment context for this plugin instance.
      *
      * @return context
@@ -69,43 +64,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         return $this->assignment->get_context();
-    }
-
-    /**
-     * Cache and return the course context for this plugin instance.
-     *
-     * @return \context_course The course context.
-     */
-    private function get_course_context() {
-        if (isset($this->coursecontext)) {
-            return $this->coursecontext;
-        }
-
-        return $this->assignment->get_course_context();
-    }
-
-    /**
-     * Determine whether or not another user has already configured and saved a criteria set
-     * for this plugin instance, and set a variable to lock the config as necessary.
-     *
-     * @return bool True if plugin config is immutable.
-     */
-    private function is_immutable() {
-        global $USER;
-
-        if (isset($this->immutable)) {
-            return $this->immutable;
-        }
-
-        $this->immutable = false;
-        if ($criteriaset = $this->get_criteria_set()) {
-            if (!empty($criteriaset->name) && $criteriaset->owner != $USER->id &&
-                    !has_capability('assignfeedback/structured:editanycriteriaset', $this->get_course_context())) {
-                $this->immutable = true;
-            }
-        }
-
-        return $this->immutable;
     }
 
     /**
@@ -164,12 +122,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
     private function get_criteria_sets_for_user($includepublic = false) {
         global $DB, $USER;
 
-        // Return an error if the assignment is already using a saved set belonging to another user.
-        if ($this->is_immutable() && $includepublic) {
-            return get_string('criteriasetlocked', 'assignfeedback_structured');
-        }
-
-        // Return a different error if any criteria are defined and have feedback already.
+        // Return an error if any criteria are defined and have feedback already.
         if ($criteria = $this->get_criteria() and $includepublic) {
             foreach ($criteria as $criterion) {
                 if ($this->is_criterion_used($criterion->id)) {
@@ -593,11 +546,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
     public function save_settings(stdClass $data) {
         global $DB, $USER;
 
-        // Don't modify the plugin config at all if another user has already configured and saved a criteria set.
-        if ($this->is_immutable()) {
-            return true;
-        }
-
         // Update any existing criteria or create new ones.
         $criteria = $this->get_criteria();
         $critids = array();
@@ -702,11 +650,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         if ($criteria = $this->get_criteria()) {
             $mform->setExpanded('assignfeedback_structured_criteria', true);
-            if ($this->is_immutable()) {
-                $critrepeats = count($criteria);
-            } else {
-                $critrepeats = count($criteria) + 2;
-            }
+            $critrepeats = count($criteria) + 2;
         } else {
             $critrepeats = 5;
         }
@@ -762,19 +706,13 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $mform->setDefault('assignfeedback_structured_critname[' . $index . ']', $criterion->name);
             $mform->setDefault('assignfeedback_structured_critdesc[' . $index . ']', $criterion->description);
             $mform->setDefault('assignfeedback_structured_critid[' . $index . ']', $criterion->id);
-            if ($this->is_criterion_used($criterion->id) || $this->is_immutable()) {
+            if ($this->is_criterion_used($criterion->id)) {
                 $elements = array(
                     'assignfeedback_structured_critname[' . $index . ']',
                     'assignfeedback_structured_critdesc[' . $index . ']'
                 );
                 $mform->freeze($elements);
-                if ($this->is_immutable()) {
-                    $mform->updateElementAttr($elements,
-                            array('title' => get_string('criteriasetlocked', 'assignfeedback_structured')));
-                } else {
-                    $mform->updateElementAttr($elements,
-                            array('title' => get_string('criterionused', 'assignfeedback_structured')));
-                }
+                $mform->updateElementAttr($elements, array('title' => get_string('criterionused', 'assignfeedback_structured')));
             }
         }
     }
