@@ -89,6 +89,15 @@ class assignfeedback_structured_external extends external_api {
             throw new moodle_exception('nopermissionstosave', 'assignfeedback_structured');
         }
 
+        // A criteria set name must be provided.
+        if (empty($name)) {
+            return array(
+                'hide' => false,
+                'title' => get_string('criteriasetnonametitle', 'assignfeedback_structured'),
+                'body' => get_string('criteriasetnoname', 'assignfeedback_structured'),
+                'label' => get_string('continue')
+            );
+        }
         // Validate global uniqueness of criteria set name provided.
         if ($DB->record_exists('assignfeedback_structured_cs', array('name' => $name))) {
             return array(
