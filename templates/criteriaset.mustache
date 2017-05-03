@@ -33,25 +33,25 @@
 
     Example context (json):
     {
-        "contextId": "1",
+        "contextId": 1,
         "postUrl": "/",
         "ownedSets": [
             {
-                "id": "1",
+                "id": 1,
                 "name": "Criteria set 1"
             },
             {
-                "id": "2",
+                "id": 2,
                 "name": "Criteria set 2"
             }
         ],
         "publicSets": [
             {
-                "id": "3",
+                "id": 3,
                 "name": "Criteria set 3"
             },
             {
-                "id": "4",
+                "id": 4,
                 "name": "Criteria set 4"
             }
         ]
@@ -80,7 +80,7 @@
                     {{/publicSets}}
                 </optgroup>
             </select>
-            <input type="hidden" name="context" value="{{contextId}}" />
+            <input type="hidden" name="context" value="{{contextId}}">
         </form>
         <div class="criteriaset-loading-container loading-screen hidden">
             {{> core/loading }}
