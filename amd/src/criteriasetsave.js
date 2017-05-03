@@ -78,10 +78,10 @@ define(
                                 saveSet(modal, contextId);
                             });
 
-                            // On hide handler.
                             modal.getRoot().on(ModalEvents.hidden, function() {
-                                // Fetch notifications.
-                                notification.fetchNotifications();
+                                // Clear field values on hide.
+                                $(this).find('[name="criteriaset-name"]').val('');
+                                $(this).find('[name="criteriaset-publish"]').prop('checked', false);
                             });
                         });
                     }
