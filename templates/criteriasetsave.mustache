@@ -42,7 +42,7 @@
                     {{#str}} criteriasetname, assignfeedback_structured {{/str}}
                     <input type="text" name="criteriaset-name" size="32" maxlength="64"
                             placeholder="{{#str}} criteriasetnameenter, assignfeedback_structured {{/str}}">
-                    <span class="loading hidden">{{#pix}} i/loading, core, Loading {{/pix}}</span>
+                    {{> core/loading }}
                 </label>
             </div>
             {{#canPublish}}
@@ -56,3 +56,8 @@
         </form>
     </div>
 </div>
+{{#js}}
+    require(['jquery'], function($) {
+        $('.loading-icon').hide();
+    });
+{{/js}}

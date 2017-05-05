@@ -123,16 +123,16 @@ class assignfeedback_structured_external extends external_api {
         return new external_function_parameters(
             array(
                 'contextid' => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
-                'name' => new external_value(PARAM_TEXT, 'A name for the new criteria set'),
-                'criteria' => new external_multiple_structure(
+                'name'      => new external_value(PARAM_TEXT, 'A name for the new criteria set'),
+                'criteria'  => new external_multiple_structure(
                     new external_single_structure(
                         array(
-                            'name' => new external_value(PARAM_TEXT, 'The criterion name'),
+                            'name'        => new external_value(PARAM_TEXT, 'The criterion name'),
                             'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL)
                         ), 'The data for a single criterion'
                     ), 'The criteria data'
                 ),
-                'public' => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared')
+                'public'    => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared')
             )
         );
     }
@@ -169,18 +169,18 @@ class assignfeedback_structured_external extends external_api {
         // A criteria set name must be provided.
         if (empty($name)) {
             return array(
-                'hide' => false,
+                'hide'  => false,
                 'title' => get_string('criteriasetnonametitle', 'assignfeedback_structured'),
-                'body' => get_string('criteriasetnoname', 'assignfeedback_structured'),
+                'body'  => get_string('criteriasetnoname', 'assignfeedback_structured'),
                 'label' => get_string('continue')
             );
         }
         // Validate global uniqueness of criteria set name provided.
         if ($DB->record_exists('assignfeedback_structured_cs', array('name' => $name))) {
             return array(
-                'hide' => false,
+                'hide'  => false,
                 'title' => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
-                'body' => get_string('criteriasetnameused', 'assignfeedback_structured', $name),
+                'body'  => get_string('criteriasetnameused', 'assignfeedback_structured', $name),
                 'label' => get_string('continue')
             );
         }
@@ -190,17 +190,17 @@ class assignfeedback_structured_external extends external_api {
 
         if ($feedback->save_criteria_set($name, $criteria, $public)) {
             return array(
-                'hide' => true,
+                'hide'  => true,
                 'title' => get_string('criteriasetsaved', 'assignfeedback_structured'),
-                'body' => get_string('criteriasetsavedsuccess', 'assignfeedback_structured', $name),
+                'body'  => get_string('criteriasetsavedsuccess', 'assignfeedback_structured', $name),
                 'label' => get_string('ok')
             );
         }
 
         return array(
-            'hide' => true,
+            'hide'  => true,
             'title' => get_string('error'),
-            'body' => get_string('criteriasetnotsaved', 'assignfeedback_structured'),
+            'body'  => get_string('criteriasetnotsaved', 'assignfeedback_structured'),
             'label' => get_string('continue')
         );
     }
@@ -213,9 +213,9 @@ class assignfeedback_structured_external extends external_api {
     public static function save_criteriaset_returns() {
         new external_single_structure(
             array(
-                'hide' => new external_value(PARAM_BOOL, 'Whether or not to hide the save dialogue'),
+                'hide'  => new external_value(PARAM_BOOL, 'Whether or not to hide the save dialogue'),
                 'title' => new external_value(PARAM_TEXT, 'The title of the message to display to the user'),
-                'body' => new external_value(PARAM_TEXT, 'The body text of the message to display to the user'),
+                'body'  => new external_value(PARAM_TEXT, 'The body text of the message to display to the user'),
                 'label' => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user')
             )
         );

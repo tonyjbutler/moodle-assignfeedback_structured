@@ -36,7 +36,6 @@ define(
         'core/modal_events'
     ],
     function($, ajax, notification, str, templates, ModalFactory, ModalEvents) {
-        var dialogue;
         var criteriaSetSave = {
             /**
              * Init function.
@@ -45,46 +44,27 @@ define(
              * @param {boolean} canPublish Whether the current user can publish criteria sets.
              */
             init: function(contextId, canPublish) {
-                var dialogueTitle = '';
                 str.get_string('criteriasetsave', 'assignfeedback_structured').then(function(title) {
-                    dialogueTitle = title;
                     var context = {
                         canPublish: canPublish
                     };
-
-                    var body = templates.render('assignfeedback_structured/criteriasetsave', context);
-                    if (dialogue) {
-                        // Set dialogue body.
-                        dialogue.setBody(body);
-                        // Display the dialogue.
-                        dialogue.show();
-                    } else {
-                        var trigger = $('#id_assignfeedback_structured_critsetsave');
-                        ModalFactory.create({
-                            title: dialogueTitle,
-                            body: body,
-                            type: ModalFactory.types.SAVE_CANCEL,
-                            large: false
-                        }, trigger).done(function(modal) {
-                            dialogue = modal;
-
-                            // Display the dialogue.
-                            trigger.click(function() {
-                                dialogue.show();
-                            });
-
-                            modal.getRoot().on(ModalEvents.save, function(e) {
-                                e.preventDefault();
-                                saveSet(modal, contextId);
-                            });
-
-                            modal.getRoot().on(ModalEvents.hidden, function() {
-                                // Clear field values on hide.
-                                $(this).find('[name="criteriaset-name"]').val('');
-                                $(this).find('[name="criteriaset-publish"]').prop('checked', false);
-                            });
+                    var trigger = $('#id_assignfeedback_structured_critsetsave');
+                    ModalFactory.create({
+                        title: title,
+                        body: templates.render('assignfeedback_structured/criteriasetsave', context),
+                        type: ModalFactory.types.SAVE_CANCEL,
+                        large: false
+                    }, trigger).done(function(modal) {
+                        modal.getRoot().on(ModalEvents.save, function(e) {
+                            e.preventDefault();
+                            saveSet(modal, contextId);
                         });
-                    }
+                        // Clear field values on hide.
+                        modal.getRoot().on(ModalEvents.hidden, function() {
+                            $(this).find('[name="criteriaset-name"]').val('');
+                            $(this).find('[name="criteriaset-publish"]').prop('checked', false);
+                        });
+                    });
                 });
             }
         };
@@ -99,9 +79,9 @@ define(
             var modalNode = modal.getRoot(),
                 name = modalNode.find('[name="criteriaset-name"]').val().trim(),
                 public = modalNode.find('[name="criteriaset-publish"]').prop('checked'),
-                spinner = modalNode.find('.loading');
+                spinner = modalNode.find('.loading-icon');
 
-            spinner.removeClass('hidden');
+            spinner.show();
 
             var criteria = [];
             modalNode.parent().find('[id^="id_assignfeedback_structured_critname"]').each(function() {
@@ -131,7 +111,7 @@ define(
                 notification.alert(response['title'], response['body'], response['label']);
             }).fail(notification.exception)
             .always(function() {
-                spinner.addClass('hidden');
+                spinner.hide();
             });
         }
 
