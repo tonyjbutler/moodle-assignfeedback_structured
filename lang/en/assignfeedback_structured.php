@@ -23,6 +23,7 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
+$string['close'] = 'Close';
 $string['criteria'] = 'Feedback criteria';
 $string['criteria_help'] = 'Enter a name and description for each criterion you want to provide feedback for. Any unnamed criteria will be ignored. Fields will be locked once there is feedback for a particular criterion.';
 $string['criteriafieldsadd'] = 'Add more criteria fields';
@@ -61,6 +62,7 @@ $string['default_help'] = 'If set, this feedback method will be enabled by defau
 $string['enabled'] = 'Structured feedback';
 $string['enabled_help'] = 'If enabled, the teacher will be able to define any number of criteria on which to provide specific feedback.';
 $string['nopermissionstodelete'] = 'Sorry, but you do not currently have permissions to delete your saved criteria sets.';
+$string['nopermissionstomanage'] = 'Sorry, but you do not currently have permissions to manage your saved criteria sets.';
 $string['nopermissionstosave'] = 'Sorry, but you do not currently have permissions to save criteria sets.';
 $string['noownedsets'] = 'You don\'t have any saved criteria sets';
 $string['nopublicsets'] = 'There are no shared criteria sets';

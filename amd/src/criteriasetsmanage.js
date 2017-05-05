@@ -17,6 +17,7 @@
  * Launches a modal dialogue that enables users to manage their criteria sets for the structured feedback plugin.
  *
  * See template: assignfeedback_structured/criteriasetsmanage
+ *               assignfeedback_structured/criteriasetsmanage_footer
  *
  * @module     assignfeedback_structured/criteriasetsmanage
  * @class      criteriasetsmanage
@@ -28,14 +29,13 @@
 define(
     [
         'jquery',
+        'core/ajax',
         'core/notification',
         'core/str',
         'core/templates',
-        'core/modal_factory',
-        'core/modal_events'
+        'core/modal_factory'
     ],
-    function($, notification, str, templates, ModalFactory, ModalEvents) {
-        var dialogue;
+    function($, ajax, notification, str, templates, ModalFactory) {
         var criteriaSetsManage = {
             /**
              * Init function.
@@ -44,45 +44,69 @@ define(
              * @param {object[]} criteriaSets An array of data objects for all saved criteria sets owned by the current user.
              */
             init: function(contextId, criteriaSets) {
-                var dialogueTitle = '';
                 str.get_string('criteriasetsmanage', 'assignfeedback_structured').then(function(title) {
-                    dialogueTitle = title;
                     var context = {
                         contextId: contextId,
                         criteriaSets: criteriaSets
                     };
-
-                    var body = templates.render('assignfeedback_structured/criteriasetsmanage', context);
-                    if (dialogue) {
-                        // Set dialogue body.
-                        dialogue.setBody(body);
-                        // Display the dialogue.
-                        dialogue.show();
-                    } else {
-                        var trigger = $('#id_assignfeedback_structured_critsetsmanage');
+                    var trigger = $('#id_assignfeedback_structured_critsetsmanage');
+                    templates.render('assignfeedback_structured/criteriasetsmanage_footer', []).then(function(footer) {
                         ModalFactory.create({
-                            title: dialogueTitle,
-                            body: body,
-                            type: ModalFactory.types.CANCEL,
+                            title: title,
+                            body: templates.render('assignfeedback_structured/criteriasetsmanage', context),
+                            footer: footer,
                             large: false
                         }, trigger).done(function(modal) {
-                            dialogue = modal;
-
-                            // Display the dialogue.
-                            trigger.click(function() {
-                                dialogue.show();
-                            });
-
-                            // On hide handler.
-                            modal.getRoot().on(ModalEvents.hidden, function() {
-                                // Fetch notifications.
-                                notification.fetchNotifications();
+                            var modalFooter = modal.getFooter(),
+                                spinner = modalFooter.find('.loading-icon'),
+                                refreshButton = modalFooter.find('[data-action="refresh"]');
+                            spinner.hide();
+                            refreshButton.on('click', function() {
+                                refreshSets(modal, contextId);
                             });
                         });
-                    }
+                    });
                 });
             }
         };
+
+        /**
+         * Function to call a web service method via AJAX to update the list of criteria sets.
+         *
+         * @param {object} modal The modal dialogue for managing the criteria sets.
+         * @param {number} contextId The context ID of the current assignment instance.
+         */
+        function refreshSets(modal, contextId) {
+            var modalBody = modal.getBody(),
+                modalFooter = modal.getFooter(),
+                refreshButton = modalFooter.find('[data-action="refresh"]'),
+                buttonWidth = refreshButton.width(),
+                spinner = modalFooter.find('.loading-icon');
+
+            refreshButton.hide();
+            spinner.css({marginLeft: buttonWidth / 2 + 'px', marginRight: buttonWidth / 2 + 'px'});
+            spinner.show();
+
+            var request = ajax.call([{
+                methodname: 'assignfeedback_structured_get_criteriasets',
+                args: {
+                    contextid: contextId,
+                    includepublic: false
+                }
+            }]);
+
+            request[0].done(function(response) {
+                var context = {
+                    contextId: contextId,
+                    criteriaSets: response.ownedSets
+                };
+                templates.render('assignfeedback_structured/criteriasetsmanage', context).then(function(html, js) {
+                    templates.replaceNodeContents(modalBody, html, js);
+                    spinner.hide();
+                    refreshButton.show();
+                }).fail(notification.exception);
+            }).fail(notification.exception);
+        }
 
         return criteriaSetsManage;
     }

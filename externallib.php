@@ -38,6 +38,83 @@ require_once($CFG->libdir . '/externallib.php');
 class assignfeedback_structured_external extends external_api {
 
     /**
+     * Return a description of the parameters for the get_criteriasets method.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_criteriasets_parameters() {
+        return new external_function_parameters(
+            array(
+                'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
+                'includepublic' => new external_value(PARAM_BOOL, 'Whether to include shared criteria sets owned by other users')
+            )
+        );
+    }
+
+    /**
+     * Return all saved criteria sets that the current user can manage (or copy into this assignment instance).
+     *
+     * @param int $contextid The context id of the current assignment instance.
+     * @param bool $includepublic Include shared criteria sets owned by other users (for copying only).
+     * @return array Grouped array of criteria sets.
+     * @throws moodle_exception
+     */
+    public static function get_criteriasets($contextid, $includepublic) {
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+        require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
+
+        $parameters = array(
+            'contextid'     => $contextid,
+            'includepublic' => $includepublic
+        );
+        self::validate_parameters(self::get_criteriasets_parameters(), $parameters);
+        $context = self::get_context_from_params(array('contextid' => $contextid));
+        self::validate_context($context);
+        if (!$includepublic && !has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
+            throw new moodle_exception('nopermissionstomanage', 'assignfeedback_structured');
+        }
+
+        $assignment = new assign($context, null, null);
+        $feedback = new assign_feedback_structured($assignment, 'structured');
+
+        if (!is_array($criteriasets = $feedback->get_criteria_sets_for_user($includepublic))) {
+            return array();
+        }
+
+        return $criteriasets;
+    }
+
+    /**
+     * Return a description of the result value for the get_criteriasets method.
+     *
+     * @return external_description
+     */
+    public static function get_criteriasets_returns() {
+        return new external_single_structure(
+            array(
+                'ownedSets' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),
+                            'name' => new external_value(PARAM_RAW, 'The criteria set name')
+                        ), 'The data for a single owned criteria set'
+                    ), 'The data for any owned criteria sets', VALUE_OPTIONAL
+                ),
+                'publicSets' => new external_multiple_structure(
+                    new external_single_structure(
+                        array(
+                            'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),
+                            'name' => new external_value(PARAM_RAW, 'The criteria set name')
+                        ), 'The data for a single shared criteria set'
+                    ), 'The data for any shared criteria sets', VALUE_OPTIONAL
+                )
+            )
+        );
+    }
+
+    /**
      * Return a description of the parameters for the save_criteriaset method.
      *
      * @return external_function_parameters

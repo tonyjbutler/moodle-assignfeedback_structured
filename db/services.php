@@ -24,6 +24,14 @@
  */
 
 $functions = array(
+    'assignfeedback_structured_get_criteriasets' => array(
+        'classname'     => 'assignfeedback_structured_external',
+        'methodname'    => 'get_criteriasets',
+        'classpath'     => 'mod/assign/feedback/structured/externallib.php',
+        'description'   => 'Get all saved criteria sets for the current user',
+        'type'          => 'read',
+        'ajax'          => true
+    ),
     'assignfeedback_structured_save_criteriaset' => array(
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'save_criteriaset',

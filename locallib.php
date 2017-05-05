@@ -114,12 +114,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Return all saved criteria sets that the current user can copy into this plugin instance.
+     * Return all saved criteria sets that the current user can manage (or copy into this assignment instance).
      *
-     * @param bool $includepublic Include shared criteria sets owned by other users.
+     * @param bool $includepublic Include shared criteria sets owned by other users (for copying only).
      * @return array|string Grouped array of criteria sets, or an error string.
      */
-    private function get_criteria_sets_for_user($includepublic = false) {
+    public function get_criteria_sets_for_user($includepublic = false) {
         global $DB, $USER;
 
         // Return an error if any criteria are defined and have feedback already.
