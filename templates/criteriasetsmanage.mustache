@@ -20,9 +20,12 @@
     Provides a template for the structured feedback plugin's criteria set management modal.
 
     Classes required for JS:
+    * criteria-data
+    * criteria-toggle
     * criteriaset-delete-button
 
     Data attributes required for JS:
+    * data-action
     * data-context
     * data-criteriaset-id
     * data-criteriaset-name
@@ -51,24 +54,103 @@
     <div class="criteriasetsmanage-page">
         {{#criteriaSets}}
             <div class="criteriaset-row" style="padding: 3px 0;">
-                <div class="pull-xs-left" style="max-width: 80%;">{{name}}</div>
+                <div class="pull-xs-left" style="max-width: 80%;">
+                    <span class="criteria-toggle" role="button" data-context="{{contextId}}" data-criteriaset-id="{{id}}">
+                        <span data-action="expand">{{#pix}} t/collapsed, core, {{#str}} expand {{/str}} {{/pix}}</span>
+                        <span data-action="collapse">{{#pix}} t/expanded, core, {{#str}} collapse {{/str}} {{/pix}}</span>
+                    </span>
+                    {{name}}
+                </div>
                 <div class="pull-xs-right">
-                    <span class="loading hidden">{{#pix}} y/loading, core, Loading {{/pix}}</span>
+                    {{> core/loading }}
                     <button type="button" class="criteriaset-delete-button btn btn-primary" data-context="{{contextId}}"
                             data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                         {{#str}} delete {{/str}}
                     </button>
                 </div>
                 <div class="clearer"></div>
+                <div class="criteria-data">
+                    {{> core/loading }}
+                </div>
             </div>
         {{/criteriaSets}}
     </div>
 </div>
 {{#js}}
-    require(['jquery', 'core/ajax', 'core/notification', 'core/str'], function($, ajax, notification, str) {
-        var deleteButton = $('.criteriaset-delete-button');
+    require([
+        'jquery',
+        'core/ajax',
+        'core/notification',
+        'core/str',
+        'core/templates'
+    ],
+    function($, ajax, notification, str, templates) {
+        $('.loading-icon').hide();
+
+        // Toggle criteria data.
+        var criteriaToggle = $('.criteria-toggle');
+        criteriaToggle.css('cursor', 'pointer');
+        criteriaToggle.find('.icon').css('marginLeft', 0);
+        criteriaToggle.children('[data-action="collapse"]').hide();
+
+        criteriaToggle.children('[data-action="expand"]').on('click', function() {
+            var toggle = $(this).parent();
+            showCriteria(toggle);
+        });
+
+        function showCriteria(toggle) {
+            var expandButton = toggle.children('[data-action="expand"]'),
+                collapseButton = toggle.children('[data-action="collapse"]'),
+                contextId = toggle.data('context'),
+                setId = toggle.data('criteriaset-id'),
+                criteriaNode = toggle.parent().siblings('.criteria-data');
+
+            expandButton.hide();
+            collapseButton.show();
+
+            if (criteriaNode.children('.assignfeedback_structured_criteria').length) {
+                criteriaNode.children('.assignfeedback_structured_criteria').show();
+            } else {
+                criteriaNode.children('.loading-icon').show();
+                var request = ajax.call([{
+                    methodname: 'assignfeedback_structured_get_criteria',
+                    args: {
+                        contextid: contextId,
+                        criteriasetid: setId
+                    }
+                }]);
+
+                request[0].done(function(response) {
+                    var context = {
+                        criteriaData: response
+                    };
+                    templates.render('assignfeedback_structured/criteria', context).then(function(html, js) {
+                        criteriaNode.children('.loading-icon').hide();
+                        if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
+                            templates.appendNodeContents(criteriaNode, html, js);
+                        }
+                    });
+                }).fail(notification.exception);
+            }
+        }
+
+        criteriaToggle.children('[data-action="collapse"]').on('click', function() {
+            var toggle = $(this).parent();
+            hideCriteria(toggle);
+        });
+
+        function hideCriteria(toggle) {
+            var collapseButton = toggle.children('[data-action="collapse"]'),
+                expandButton = toggle.children('[data-action="expand"]'),
+                criteriaNode = toggle.parent().siblings('.criteria-data');
+
+            collapseButton.hide();
+            expandButton.show();
+            criteriaNode.children().hide();
+        }
 
         // Delete criteria set.
+        var deleteButton = $('.criteriaset-delete-button');
         deleteButton.on('click', function() {
             var button = $(this);
             str.get_strings([
@@ -81,16 +163,17 @@
                 {'key': 'continue'}
             ]).done(function(s) {
                 notification.confirm(s[0], s[1], s[2], s[3], function() {
-                    deleteSet(ajax, notification, button, s[4], s[5], s[6]);
+                    deleteSet(button, s[4], s[5], s[6]);
                 });
             }).fail(notification.exception);
         });
 
-        function deleteSet(ajax, notification, button, title, body, label) {
-            button.prev('.loading').removeClass('hidden');
+        function deleteSet(button, title, body, label) {
+            button.prev('.loading-icon').show();
             var contextId = button.data('context'),
-                setId = button.data('criteriaset-id'),
-                request = ajax.call([{
+                setId = button.data('criteriaset-id');
+
+            var request = ajax.call([{
                 methodname: 'assignfeedback_structured_delete_criteriaset',
                 args: {
                     contextid: contextId,
@@ -106,7 +189,7 @@
                 }
             }).fail(notification.exception)
             .always(function() {
-                button.prev('.loading').addClass('hidden');
+                button.prev('.loading-icon').hide();
             });
         }
     });

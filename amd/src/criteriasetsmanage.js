@@ -57,10 +57,7 @@ define(
                             footer: footer,
                             large: false
                         }, trigger).done(function(modal) {
-                            var modalFooter = modal.getFooter(),
-                                spinner = modalFooter.find('.loading-icon'),
-                                refreshButton = modalFooter.find('[data-action="refresh"]');
-                            spinner.hide();
+                            var refreshButton = modal.getFooter().find('[data-action="refresh"]');
                             refreshButton.on('click', function() {
                                 refreshSets(modal, contextId);
                             });
