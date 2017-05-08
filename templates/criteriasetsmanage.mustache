@@ -21,7 +21,6 @@
 
     Classes required for JS:
     * criteria-data
-    * criteria-toggle
     * criteriaset-delete-button
 
     Data attributes required for JS:
@@ -29,6 +28,7 @@
     * data-context
     * data-criteriaset-id
     * data-criteriaset-name
+    * data-toggle
 
     Context variables required for this template:
     * contextId The context ID of the current assignment instance.
@@ -51,15 +51,12 @@
 
 }}
 <div class="assignfeedback_structured_criteriasetsmanage">
-    <div class="criteriasetsmanage-page">
+    <div class="criteriasets-page">
         {{#criteriaSets}}
-            <div class="criteriaset-row" style="padding: 3px 0;">
-                <div class="pull-xs-left" style="max-width: 80%;">
-                    <span class="criteria-toggle" role="button" data-context="{{contextId}}" data-criteriaset-id="{{id}}">
-                        <span data-action="expand">{{#pix}} t/collapsed, core, {{#str}} expand {{/str}} {{/pix}}</span>
-                        <span data-action="collapse">{{#pix}} t/expanded, core, {{#str}} collapse {{/str}} {{/pix}}</span>
-                    </span>
-                    {{name}}
+            <div class="criteriaset-row">
+                <div class="pull-xs-left">
+                    <a href="#criteria-data-{{id}}" class="collapsed" data-toggle="collapse" data-context="{{contextId}}"
+                       data-criteriaset-id="{{id}}">{{name}}</a>
                 </div>
                 <div class="pull-xs-right">
                     {{> core/loading }}
@@ -69,7 +66,7 @@
                     </button>
                 </div>
                 <div class="clearer"></div>
-                <div class="criteria-data">
+                <div id="criteria-data-{{id}}" class="criteria-data collapse">
                     {{> core/loading }}
                 </div>
             </div>
@@ -88,29 +85,18 @@
         $('.loading-icon').hide();
 
         // Toggle criteria data.
-        var criteriaToggle = $('.criteria-toggle');
-        criteriaToggle.css('cursor', 'pointer');
-        criteriaToggle.find('.icon').css('marginLeft', 0);
-        criteriaToggle.children('[data-action="collapse"]').hide();
+        var criteriaToggle = $('[data-toggle="collapse"]');
 
-        criteriaToggle.children('[data-action="expand"]').on('click', function() {
-            var toggle = $(this).parent();
-            showCriteria(toggle);
+        criteriaToggle.on('click', function() {
+            toggleCriteria($(this));
         });
 
-        function showCriteria(toggle) {
-            var expandButton = toggle.children('[data-action="expand"]'),
-                collapseButton = toggle.children('[data-action="collapse"]'),
-                contextId = toggle.data('context'),
+        function toggleCriteria(toggle) {
+            var contextId = toggle.data('context'),
                 setId = toggle.data('criteriaset-id'),
                 criteriaNode = toggle.parent().siblings('.criteria-data');
 
-            expandButton.hide();
-            collapseButton.show();
-
-            if (criteriaNode.children('.assignfeedback_structured_criteria').length) {
-                criteriaNode.children('.assignfeedback_structured_criteria').show();
-            } else {
+            if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
                 criteriaNode.children('.loading-icon').show();
                 var request = ajax.call([{
                     methodname: 'assignfeedback_structured_get_criteria',
@@ -132,21 +118,6 @@
                     });
                 }).fail(notification.exception);
             }
-        }
-
-        criteriaToggle.children('[data-action="collapse"]').on('click', function() {
-            var toggle = $(this).parent();
-            hideCriteria(toggle);
-        });
-
-        function hideCriteria(toggle) {
-            var collapseButton = toggle.children('[data-action="collapse"]'),
-                expandButton = toggle.children('[data-action="expand"]'),
-                criteriaNode = toggle.parent().siblings('.criteria-data');
-
-            collapseButton.hide();
-            expandButton.show();
-            criteriaNode.children().hide();
         }
 
         // Delete criteria set.
