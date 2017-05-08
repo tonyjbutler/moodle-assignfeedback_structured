@@ -32,6 +32,7 @@
     Context variables required for this template:
     * contextId The context ID of the current assignment instance.
     * criteriaSets An array of data objects for all saved criteria sets owned by the current user.
+    * manage Whether a management interface is required (otherwise user is just finding a criteria set to use).
 
     Example context (json):
     {
@@ -58,14 +59,21 @@
                 </div>
                 <div class="pull-xs-right">
                     {{> core/loading }}
-                    <button type="button" class="btn btn-primary" data-action="delete">
-                        {{#str}} delete {{/str}}
-                    </button>
+                    {{#manage}}
+                        <button type="button" class="btn btn-primary" data-action="delete">
+                            {{#str}} delete {{/str}}
+                        </button>
+                    {{/manage}}
+                    {{^manage}}
+                        <button type="button" class="btn btn-primary" data-action="use">
+                            {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
+                        </button>
+                    {{/manage}}
                 </div>
-                <div class="clearer"></div>
                 <div id="criteria-data-{{id}}" class="criteria-data collapse">
                     {{> core/loading }}
                 </div>
+                <div class="clearer"></div>
             </div>
         {{/criteriaSets}}
     </div>
@@ -83,15 +91,10 @@
 
         // Toggle criteria data.
         var criteriaToggle = $('[data-toggle="collapse"]');
-
         criteriaToggle.on('click', function() {
-            toggleCriteria($(this));
-        });
-
-        function toggleCriteria(toggle) {
-            var contextId = toggle.parent().parent().parent().data('context'),
-                setId = toggle.parent().parent().data('criteriaset-id'),
-                criteriaNode = toggle.parent().siblings('.criteria-data');
+            var contextId = $(this).parent().parent().parent().data('context'),
+                setId = $(this).parent().parent().data('criteriaset-id'),
+                criteriaNode = $(this).parent().siblings('.criteria-data');
 
             if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
                 criteriaNode.children('.loading-icon').show();
@@ -112,16 +115,20 @@
                         if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
                             templates.appendNodeContents(criteriaNode, html, js);
                         }
-                    });
+                    }).fail(notification.exception);
                 }).fail(notification.exception);
             }
-        }
+        });
 
         // Delete criteria set.
         var deleteButton = $('[data-action="delete"]');
         deleteButton.on('click', function() {
-            var button = $(this),
-                setName = button.parent().parent().data('criteriaset-name');
+            var contextId = $(this).parent().parent().parent().data('context'),
+                setId = $(this).parent().parent().data('criteriaset-id'),
+                setName = $(this).parent().parent().data('criteriaset-name'),
+                setRow = $(this).parent().parent('[data-criteriaset-id="' + setId + '"]'),
+                spinner = $(this).prev('.loading-icon');
+
             str.get_strings([
                 {'key': 'delete'},
                 {'key': 'criteriasetconfirmdelete', component: 'assignfeedback_structured', param: setName},
@@ -132,34 +139,27 @@
                 {'key': 'continue'}
             ]).done(function(s) {
                 notification.confirm(s[0], s[1], s[2], s[3], function() {
-                    deleteSet(button, s[4], s[5], s[6]);
+                    spinner.show();
+
+                    var request = ajax.call([{
+                        methodname: 'assignfeedback_structured_delete_criteriaset',
+                        args: {
+                            contextid: contextId,
+                            criteriasetid: setId
+                        }
+                    }]);
+
+                    request[0].done(function(response) {
+                        if (response === true) {
+                            setRow.hide();
+                        } else {
+                            notification.alert(s[4], s[5], s[6]);
+                        }
+                    }).fail(notification.exception).always(function() {
+                        spinner.hide();
+                    });
                 });
             }).fail(notification.exception);
         });
-
-        function deleteSet(button, title, body, label) {
-            button.prev('.loading-icon').show();
-            var contextId = button.parent().parent().parent().data('context'),
-                setId = button.parent().parent().data('criteriaset-id');
-
-            var request = ajax.call([{
-                methodname: 'assignfeedback_structured_delete_criteriaset',
-                args: {
-                    contextid: contextId,
-                    criteriasetid: setId
-                }
-            }]);
-
-            request[0].done(function(response) {
-                if (response === true) {
-                    button.parent().parent('[data-criteriaset-id="' + setId + '"]').hide();
-                } else {
-                    notification.alert(title, body, label);
-                }
-            }).fail(notification.exception)
-            .always(function() {
-                button.prev('.loading-icon').hide();
-            });
-        }
     });
 {{/js}}

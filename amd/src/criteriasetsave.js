@@ -109,8 +109,7 @@ define(
                     modal.hide();
                 }
                 notification.alert(response['title'], response['body'], response['label']);
-            }).fail(notification.exception)
-            .always(function() {
+            }).fail(notification.exception).always(function() {
                 spinner.hide();
             });
         }

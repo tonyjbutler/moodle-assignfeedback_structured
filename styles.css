@@ -2,17 +2,20 @@
     padding: 3px 0;
 }
 
-.criteriasets-page .criteriaset-row .pull-xs-left {
-    max-width: 80%;
-}
-
 .criteriasets-page .criteriaset-row .pull-xs-left a::before {
     content: url([[pix:core|t/expanded]]);
     vertical-align: text-top;
     margin-right: 3px;
 }
 
-
 .criteriasets-page .criteriaset-row .pull-xs-left a.collapsed::before {
     content: url([[pix:core|t/collapsed]]);
+}
+
+.criteriasets-page .criteriaset-row .criteria-data {
+    clear: left;
+}
+
+.criteriasets-page .criteriaset-row .criteria-data .criteria-list .criterion-description {
+    font-style: italic;
 }

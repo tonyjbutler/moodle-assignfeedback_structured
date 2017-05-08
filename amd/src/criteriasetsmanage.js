@@ -47,7 +47,8 @@ define(
                 str.get_string('criteriasetsmanage', 'assignfeedback_structured').then(function(title) {
                     var context = {
                         contextId: contextId,
-                        criteriaSets: criteriaSets
+                        criteriaSets: criteriaSets,
+                        manage: true
                     };
                     var trigger = $('#id_assignfeedback_structured_critsetsmanage');
                     templates.render('assignfeedback_structured/criteriasetsmanage_footer', []).then(function(footer) {
@@ -62,7 +63,7 @@ define(
                                 refreshSets(modal, contextId);
                             });
                         });
-                    });
+                    }).fail(notification.exception);
                 });
             }
         };
@@ -95,7 +96,8 @@ define(
             request[0].done(function(response) {
                 var context = {
                     contextId: contextId,
-                    criteriaSets: response.ownedSets
+                    criteriaSets: response.ownedSets,
+                    manage: true
                 };
                 templates.render('assignfeedback_structured/criteriasetsmanage', context).then(function(html, js) {
                     templates.replaceNodeContents(modalBody, html, js);
