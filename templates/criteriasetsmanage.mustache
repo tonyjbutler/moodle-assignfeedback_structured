@@ -21,7 +21,6 @@
 
     Classes required for JS:
     * criteria-data
-    * criteriaset-delete-button
 
     Data attributes required for JS:
     * data-action
@@ -51,17 +50,15 @@
 
 }}
 <div class="assignfeedback_structured_criteriasetsmanage">
-    <div class="criteriasets-page">
+    <div class="criteriasets-page" data-context="{{contextId}}">
         {{#criteriaSets}}
-            <div class="criteriaset-row">
+            <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                 <div class="pull-xs-left">
-                    <a href="#criteria-data-{{id}}" class="collapsed" data-toggle="collapse" data-context="{{contextId}}"
-                       data-criteriaset-id="{{id}}">{{name}}</a>
+                    <a href="#criteria-data-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
                 </div>
                 <div class="pull-xs-right">
                     {{> core/loading }}
-                    <button type="button" class="criteriaset-delete-button btn btn-primary" data-context="{{contextId}}"
-                            data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
+                    <button type="button" class="btn btn-primary" data-action="delete">
                         {{#str}} delete {{/str}}
                     </button>
                 </div>
@@ -92,8 +89,8 @@
         });
 
         function toggleCriteria(toggle) {
-            var contextId = toggle.data('context'),
-                setId = toggle.data('criteriaset-id'),
+            var contextId = toggle.parent().parent().parent().data('context'),
+                setId = toggle.parent().parent().data('criteriaset-id'),
                 criteriaNode = toggle.parent().siblings('.criteria-data');
 
             if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
@@ -121,16 +118,17 @@
         }
 
         // Delete criteria set.
-        var deleteButton = $('.criteriaset-delete-button');
+        var deleteButton = $('[data-action="delete"]');
         deleteButton.on('click', function() {
-            var button = $(this);
+            var button = $(this),
+                setName = button.parent().parent().data('criteriaset-name');
             str.get_strings([
                 {'key': 'delete'},
-                {'key': 'criteriasetconfirmdelete', component: 'assignfeedback_structured', param: button.data('criteriaset-name')},
+                {'key': 'criteriasetconfirmdelete', component: 'assignfeedback_structured', param: setName},
                 {'key': 'yes'},
                 {'key': 'no'},
                 {'key': 'error'},
-                {'key': 'criteriasetnotdeleted', component: 'assignfeedback_structured', param: button.data('criteriaset-name')},
+                {'key': 'criteriasetnotdeleted', component: 'assignfeedback_structured', param: setName},
                 {'key': 'continue'}
             ]).done(function(s) {
                 notification.confirm(s[0], s[1], s[2], s[3], function() {
@@ -141,8 +139,8 @@
 
         function deleteSet(button, title, body, label) {
             button.prev('.loading-icon').show();
-            var contextId = button.data('context'),
-                setId = button.data('criteriaset-id');
+            var contextId = button.parent().parent().parent().data('context'),
+                setId = button.parent().parent().data('criteriaset-id');
 
             var request = ajax.call([{
                 methodname: 'assignfeedback_structured_delete_criteriaset',
@@ -154,7 +152,7 @@
 
             request[0].done(function(response) {
                 if (response === true) {
-                    button.parent().parent('.criteriaset-row').addClass('hidden');
+                    button.parent().parent('[data-criteriaset-id="' + setId + '"]').hide();
                 } else {
                     notification.alert(title, body, label);
                 }
