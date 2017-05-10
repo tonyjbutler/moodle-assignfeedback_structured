@@ -33,9 +33,10 @@ define(
         'core/notification',
         'core/str',
         'core/templates',
-        'core/modal_factory'
+        'core/modal_factory',
+        'core/modal_events'
     ],
-    function($, ajax, notification, str, templates, ModalFactory) {
+    function($, ajax, notification, str, templates, ModalFactory, ModalEvents) {
         var criteriaSetsManage = {
             /**
              * Init function.
@@ -73,6 +74,12 @@ define(
                             refreshButton.on('click', function() {
                                 refreshSets(modal, contextId, manage);
                             });
+                            // Refresh automatically when showing the non-management modal.
+                            if (!manage) {
+                                modal.getRoot().on(ModalEvents.shown, function() {
+                                    refreshSets(modal, contextId, manage);
+                                });
+                            }
                         });
                     }).fail(notification.exception);
                 });
