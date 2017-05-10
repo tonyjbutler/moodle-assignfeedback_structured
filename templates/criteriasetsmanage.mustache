@@ -23,21 +23,23 @@
     * criteria-data
 
     Data attributes required for JS:
-    * data-action
     * data-context
     * data-criteriaset-id
     * data-criteriaset-name
+    * data-set-action
     * data-toggle
 
     Context variables required for this template:
     * contextId The context ID of the current assignment instance.
-    * criteriaSets An array of data objects for all saved criteria sets owned by the current user.
-    * manage Whether a management interface is required (otherwise user is just finding a criteria set to use).
+    * manage Whether a full management interface is required (otherwise it's read only).
+    * ownedSets An array of data objects for all saved criteria sets owned by the current user.
+    * publicSets An array of data objects for any other available criteria sets.
 
     Example context (json):
     {
         "contextId": 1,
-        "criteriaSets": [
+        "manage": true,
+        "ownedSets": [
             {
                 "id": 1,
                 "name": "Criteria set 1"
@@ -46,36 +48,75 @@
                 "id": 2,
                 "name": "Criteria set 2"
             }
+        ],
+        "publicSets": [
+            {
+                "id": 1,
+                "name": "Criteria set 3"
+            },
+            {
+                "id": 2,
+                "name": "Criteria set 4"
+            }
         ]
     }
 
 }}
 <div class="assignfeedback_structured_criteriasetsmanage">
     <div class="criteriasets-page" data-context="{{contextId}}">
-        {{#criteriaSets}}
+        {{^manage}}
+            <h5>{{#str}} criteriasetsowned, assignfeedback_structured {{/str}}</h5>
+            {{^ownedSets}}
+                {{#str}} noownedsets, assignfeedback_structured {{/str}}
+            {{/ownedSets}}
+        {{/manage}}
+        {{#ownedSets}}
             <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                 <div class="pull-xs-left">
-                    <a href="#criteria-data-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
+                    <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
                 </div>
                 <div class="pull-xs-right">
                     {{> core/loading }}
                     {{#manage}}
-                        <button type="button" class="btn btn-primary" data-action="delete">
+                        <button type="button" class="btn btn-primary" data-set-action="delete">
                             {{#str}} delete {{/str}}
                         </button>
                     {{/manage}}
                     {{^manage}}
-                        <button type="button" class="btn btn-primary" data-action="use">
+                        <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
                             {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
                         </button>
                     {{/manage}}
                 </div>
-                <div id="criteria-data-{{id}}" class="criteria-data collapse">
+                <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
                     {{> core/loading }}
                 </div>
                 <div class="clearer"></div>
             </div>
-        {{/criteriaSets}}
+        {{/ownedSets}}
+        {{^manage}}
+            <h5>{{#str}} criteriasetspublic, assignfeedback_structured {{/str}}</h5>
+            {{^publicSets}}
+                {{#str}} nopublicsets, assignfeedback_structured {{/str}}
+            {{/publicSets}}
+            {{#publicSets}}
+                <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
+                    <div class="pull-xs-left">
+                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
+                    </div>
+                    <div class="pull-xs-right">
+                        {{> core/loading }}
+                        <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
+                            {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
+                        </button>
+                    </div>
+                    <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
+                        {{> core/loading }}
+                    </div>
+                    <div class="clearer"></div>
+                </div>
+            {{/publicSets}}
+        {{/manage}}
     </div>
 </div>
 {{#js}}
@@ -89,15 +130,31 @@
     function($, ajax, notification, str, templates) {
         $('.loading-icon').hide();
 
-        // Toggle criteria data.
+        // Get criteria data when expanded for the first time.
         var criteriaToggle = $('[data-toggle="collapse"]');
         criteriaToggle.on('click', function() {
-            var contextId = $(this).parent().parent().parent().data('context'),
-                setId = $(this).parent().parent().data('criteriaset-id'),
-                criteriaNode = $(this).parent().siblings('.criteria-data');
+            if ($(this).hasClass('collapsed')) {
+                var spinner = $(this).parent().siblings('.criteria-data').children('.loading-icon');
+                spinner.show();
+                getCriteria($(this).parent().parent()).done(function() {
+                    spinner.hide();
+                }).fail(notification.exception);
+            }
+        });
+
+        /**
+         * Function to call a web service method via AJAX to fetch the criteria data for the given set.
+         *
+         * @param {object} set The node containing the details of the criteria set to be fetched.
+         * @return {object} A jQuery promise.
+         */
+        function getCriteria(set) {
+            var contextId = set.parent().data('context'),
+                setId = set.data('criteriaset-id'),
+                criteriaNode = set.children('.criteria-data'),
+                deferred = $.Deferred();
 
             if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
-                criteriaNode.children('.loading-icon').show();
                 var request = ajax.call([{
                     methodname: 'assignfeedback_structured_get_criteria',
                     args: {
@@ -110,33 +167,41 @@
                     var context = {
                         criteriaData: response
                     };
-                    templates.render('assignfeedback_structured/criteria', context).then(function(html, js) {
-                        criteriaNode.children('.loading-icon').hide();
+                    templates.render('assignfeedback_structured/criteria', context).done(function(html, js) {
                         if (!criteriaNode.children('.assignfeedback_structured_criteria').length) {
                             templates.appendNodeContents(criteriaNode, html, js);
                         }
-                    }).fail(notification.exception);
-                }).fail(notification.exception);
+                        deferred.resolve();
+                    }).fail(function(ex) {
+                        deferred.reject(ex);
+                    });
+                }).fail(function(ex) {
+                    deferred.reject(ex);
+                });
+            } else {
+                deferred.resolve();
             }
-        });
+
+            return deferred.promise();
+        }
 
         // Delete criteria set.
-        var deleteButton = $('[data-action="delete"]');
+        var deleteButton = $('[data-set-action="delete"]');
         deleteButton.on('click', function() {
-            var contextId = $(this).parent().parent().parent().data('context'),
-                setId = $(this).parent().parent().data('criteriaset-id'),
-                setName = $(this).parent().parent().data('criteriaset-name'),
-                setRow = $(this).parent().parent('[data-criteriaset-id="' + setId + '"]'),
-                spinner = $(this).prev('.loading-icon');
+            var set = $(this).parent().parent(),
+                contextId = set.parent().data('context'),
+                setId = set.data('criteriaset-id'),
+                setName = set.data('criteriaset-name'),
+                spinner = $(this).siblings('.loading-icon');
 
             str.get_strings([
-                {'key': 'delete'},
-                {'key': 'criteriasetconfirmdelete', component: 'assignfeedback_structured', param: setName},
-                {'key': 'yes'},
-                {'key': 'no'},
-                {'key': 'error'},
-                {'key': 'criteriasetnotdeleted', component: 'assignfeedback_structured', param: setName},
-                {'key': 'continue'}
+                {key: 'delete'},
+                {key: 'criteriasetconfirmdelete', component: 'assignfeedback_structured', param: setName},
+                {key: 'yes'},
+                {key: 'no'},
+                {key: 'error'},
+                {key: 'criteriasetnotdeleted', component: 'assignfeedback_structured', param: setName},
+                {key: 'continue'}
             ]).done(function(s) {
                 notification.confirm(s[0], s[1], s[2], s[3], function() {
                     spinner.show();
@@ -151,7 +216,7 @@
 
                     request[0].done(function(response) {
                         if (response === true) {
-                            setRow.hide();
+                            set.hide();
                         } else {
                             notification.alert(s[4], s[5], s[6]);
                         }
@@ -161,5 +226,112 @@
                 });
             }).fail(notification.exception);
         });
+
+        // Use criteria set.
+        var useButton = $('[data-set-action="use"]');
+        useButton.on('click', function() {
+            var set = $(this).parent().parent(),
+                spinner = $('#id_assignfeedback_structured_critset').siblings('.loading-icon');
+
+            spinner.show();
+            if (!set.children('.criteria-data').children('.assignfeedback_structured_criteria').length) {
+                getCriteria(set).done(function() {
+                    processCriteriaData(set.children('.criteria-data')).done(function() {
+                        spinner.hide();
+                    }).fail(notification.exception);
+                }).fail(notification.exception);
+            } else {
+                processCriteriaData(set.children('.criteria-data')).done(function() {
+                    spinner.hide();
+                }).fail(notification.exception);
+            }
+        });
+
+        /**
+         * Function to process the criteria data for a chosen criteria set and populate the config form fields.
+         *
+         * @param {object} criteriaData The node containing the criteria data to be processed.
+         * @return {object} A jQuery promise.
+         */
+        function processCriteriaData(criteriaData) {
+            var criteriaList = criteriaData.find('.criteria-list').children('li'),
+                configData = [],
+                deferred = $.Deferred();
+
+            // Prepare the criteria data.
+            criteriaList.each(function() {
+                var name = $(this).data('criterion-name'),
+                    desc = $(this).data('criterion-desc');
+                configData.push({
+                    assignfeedback_structured_critname: name,
+                    assignfeedback_structured_critdesc: desc
+                });
+            });
+
+            // Append any additional criteria config fields as necessary.
+            var repeats = $('[name="assignfeedback_structured_repeats"]');
+            var critFields = parseInt(repeats.val(), 10);
+            if (configData.length > critFields) {
+                var newIndexes = [];
+                for (var i = critFields; i < configData.length; i++) {
+                    // Clone criterion ID hidden field and set its value to 0.
+                    var idField = $('[name="assignfeedback_structured_critid[' + (i - 1) + ']"]');
+                    var name = 'assignfeedback_structured_critid[' + i + ']';
+                    idField.clone().attr({name: name, value: '0'}).insertAfter(idField);
+                    newIndexes.push({
+                        nodeIndex: i,
+                        critIndex: i + 1
+                    });
+                }
+                // Use a template to deal with name and description fields.
+                var context = {
+                    lastNodeIndex: critFields - 1,
+                    lastCritIndex: critFields,
+                    newIndexes: newIndexes
+                };
+                var lastFieldId = 'id_assignfeedback_structured_critdesc_' + (critFields - 1);
+                var lastNode = $('#fitem_' + lastFieldId);
+                var templateName = 'assignfeedback_structured/criterianodes';
+                // Deal with missing form element IDs in Boost.
+                if (!lastNode.length) {
+                    lastNode = $('#' + lastFieldId).parent().parent();
+                    templateName = 'assignfeedback_structured/criterianodes_boost';
+                }
+                templates.render(templateName, context).done(function(html, js) {
+                    templates.replaceNode(lastNode, html, js);
+                    populateFields();
+                });
+                // Set number of repeats to new value.
+                repeats.val(configData.length);
+            } else {
+                for (var j = 0; j < critFields; j++) {
+                    // Clear any existing data.
+                    $('#id_assignfeedback_structured_critname_' + j).val('');
+                    $('#id_assignfeedback_structured_critdesc_' + j).val('');
+                }
+                populateFields();
+                // Freeze 'add criteria fields' button.
+                $('#id_assignfeedback_structured_critfieldsadd').prop('disabled', true);
+            }
+            if (configData.length >= critFields) {
+                // Unfreeze 'add criteria fields' button.
+                $('#id_assignfeedback_structured_critfieldsadd').prop('disabled', false);
+            }
+            // Unfreeze 'save criteria set' checkbox.
+            $('#id_assignfeedback_structured_saveset').prop('disabled', false);
+
+            // Function to populate fields for each criterion from config data.
+            function populateFields() {
+                $.each(configData, function(index, criterion) {
+                    $.each(criterion, function(fieldName, value) {
+                        var field = '#id_' + fieldName + '_' + index;
+                        $(field).val(value);
+                    });
+                });
+                deferred.resolve();
+            }
+
+            return deferred.promise();
+        }
     });
 {{/js}}

@@ -58,7 +58,9 @@
 <div class="assignfeedback_structured_criteria">
     <ol class="criteria-list">
         {{#criteriaData}}
-            <li>{{name}}: <span class="criterion-description">{{description}}</span></li>
+            <li data-criterion-name="{{name}}" data-criterion-desc="{{description}}">
+                {{name}}: <span class="criterion-desc">{{description}}</span>
+            </li>
         {{/criteriaData}}
     </ol>
 </div>

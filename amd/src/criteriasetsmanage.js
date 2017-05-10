@@ -41,17 +41,28 @@ define(
              * Init function.
              *
              * @param {number} contextId The context ID of the current assignment instance.
-             * @param {object[]} criteriaSets An array of data objects for all saved criteria sets owned by the current user.
+             * @param {boolean} manage Whether a full management interface is required (otherwise it's read only).
+             * @param {object[]} ownedSets An array of data objects for all saved criteria sets owned by the current user.
+             * @param {object[]} publicSets An array of data objects for any other available criteria sets.
              */
-            init: function(contextId, criteriaSets) {
-                str.get_string('criteriasetsmanage', 'assignfeedback_structured').then(function(title) {
+            init: function(contextId, manage, ownedSets, publicSets) {
+                str.get_strings([
+                    {key: 'criteriasetssaved', component: 'assignfeedback_structured'},
+                    {key: 'criteriasetsmanage', component: 'assignfeedback_structured'}
+                ]).done(function(s) {
                     var context = {
                         contextId: contextId,
-                        criteriaSets: criteriaSets,
-                        manage: true
+                        manage: manage,
+                        ownedSets: ownedSets,
+                        publicSets: publicSets
                     };
-                    var trigger = $('#id_assignfeedback_structured_critsetsmanage');
-                    templates.render('assignfeedback_structured/criteriasetsmanage_footer', []).then(function(footer) {
+                    var title = s[0],
+                        trigger = $('#id_assignfeedback_structured_critset');
+                    if (manage) {
+                        title = s[1];
+                        trigger = $('#id_assignfeedback_structured_critsetsmanage');
+                    }
+                    templates.render('assignfeedback_structured/criteriasetsmanage_footer', []).done(function(footer) {
                         ModalFactory.create({
                             title: title,
                             body: templates.render('assignfeedback_structured/criteriasetsmanage', context),
@@ -60,21 +71,31 @@ define(
                         }, trigger).done(function(modal) {
                             var refreshButton = modal.getFooter().find('[data-action="refresh"]');
                             refreshButton.on('click', function() {
-                                refreshSets(modal, contextId);
+                                refreshSets(modal, contextId, manage);
                             });
                         });
                     }).fail(notification.exception);
                 });
+
+                // Add a hidden spinner after the 'Use a saved criteria set' button.
+                if (!manage) {
+                    var setButton = $('#id_assignfeedback_structured_critset');
+                    templates.render('core/loading', []).done(function(html, js) {
+                        templates.appendNodeContents(setButton.parent(), html, js);
+                        setButton.siblings('.loading-icon').hide();
+                    }).fail(notification.exception);
+                }
             }
         };
 
         /**
          * Function to call a web service method via AJAX to update the list of criteria sets.
          *
-         * @param {object} modal The modal dialogue for managing the criteria sets.
+         * @param {object} modal The modal dialogue to be refreshed.
          * @param {number} contextId The context ID of the current assignment instance.
+         * @param {boolean} manage Whether the modal provides a management interface.
          */
-        function refreshSets(modal, contextId) {
+        function refreshSets(modal, contextId, manage) {
             var modalBody = modal.getBody(),
                 modalFooter = modal.getFooter(),
                 refreshButton = modalFooter.find('[data-action="refresh"]'),
@@ -89,17 +110,18 @@ define(
                 methodname: 'assignfeedback_structured_get_criteriasets',
                 args: {
                     contextid: contextId,
-                    includepublic: false
+                    includepublic: !manage
                 }
             }]);
 
             request[0].done(function(response) {
                 var context = {
                     contextId: contextId,
-                    criteriaSets: response.ownedSets,
-                    manage: true
+                    manage: manage,
+                    ownedSets: response.ownedSets,
+                    publicSets: response.publicSets
                 };
-                templates.render('assignfeedback_structured/criteriasetsmanage', context).then(function(html, js) {
+                templates.render('assignfeedback_structured/criteriasetsmanage', context).done(function(html, js) {
                     templates.replaceNodeContents(modalBody, html, js);
                     spinner.hide();
                     refreshButton.show();

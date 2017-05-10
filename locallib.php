@@ -630,12 +630,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         // Check if there are any saved criteria sets that can be used here.
         if (is_array($criteriasets = $this->get_criteria_sets_for_user(true))) {
-            $critsetposturl = new moodle_url('/mod/assign/feedback/structured/criteriaset.php');
             $params = array_merge(array(
                 'contextid' => $PAGE->context->id,
-                'posturl'   => $critsetposturl->out(false)
+                'manage'    => false
             ), $criteriasets);
-            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriaset', 'init', $params);
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsmanage', 'init', $params);
         } else {
             $mform->updateElementAttr('assignfeedback_structured_critset',
                     array('title' => $criteriasets, 'disabled' => 'disabled'));
@@ -688,7 +687,8 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->setAdvanced('assignfeedback_structured_critsetsmanage');
         if ($criteriasets = $this->get_criteria_sets_for_user(false)) {
             $params = array_merge(array(
-                'contextid' => $PAGE->context->id
+                'contextid' => $PAGE->context->id,
+                'manage'    => true
             ), $criteriasets);
             $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsmanage', 'init', $params);
         } else {
