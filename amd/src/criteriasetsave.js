@@ -44,7 +44,7 @@ define(
              * @param {boolean} canPublish Whether the current user can publish criteria sets.
              */
             init: function(contextId, canPublish) {
-                str.get_string('criteriasetsave', 'assignfeedback_structured').then(function(title) {
+                str.get_string('criteriasetsave', 'assignfeedback_structured').done(function(title) {
                     var context = {
                         canPublish: canPublish
                     };
@@ -64,8 +64,8 @@ define(
                             $(this).find('[name="criteriaset-name"]').val('');
                             $(this).find('[name="criteriaset-publish"]').prop('checked', false);
                         });
-                    });
-                });
+                    }).fail(notification.exception);
+                }).fail(notification.exception);
             }
         };
 

@@ -16,11 +16,11 @@
 /**
  * Launches a modal dialogue that enables users to manage their criteria sets for the structured feedback plugin.
  *
- * See template: assignfeedback_structured/criteriasetsmanage
- *               assignfeedback_structured/criteriasetsmanage_footer
+ * See template: assignfeedback_structured/criteriasets
+ *               assignfeedback_structured/criteriasets_footer
  *
- * @module     assignfeedback_structured/criteriasetsmanage
- * @class      criteriasetsmanage
+ * @module     assignfeedback_structured/criteriasets
+ * @class      criteriasets
  * @package    assignfeedback_structured
  * @copyright  2017 Lancaster University {@link http://www.lancaster.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -37,7 +37,7 @@ define(
         'core/modal_events'
     ],
     function($, ajax, notification, str, templates, ModalFactory, ModalEvents) {
-        var criteriaSetsManage = {
+        var criteriaSets = {
             /**
              * Init function.
              *
@@ -66,10 +66,10 @@ define(
                         title = s[1];
                         trigger = $('#id_assignfeedback_structured_critsetsmanage');
                     }
-                    templates.render('assignfeedback_structured/criteriasetsmanage_footer', footerContext).done(function(footer) {
+                    templates.render('assignfeedback_structured/criteriasets_footer', footerContext).done(function(footer) {
                         ModalFactory.create({
                             title: title,
-                            body: templates.render('assignfeedback_structured/criteriasetsmanage', context),
+                            body: templates.render('assignfeedback_structured/criteriasets', context),
                             footer: footer,
                             large: false
                         }, trigger).done(function(modal) {
@@ -132,7 +132,7 @@ define(
                     ownedSets: response.ownedSets,
                     publicSets: response.publicSets
                 };
-                templates.render('assignfeedback_structured/criteriasetsmanage', context).done(function(html, js) {
+                templates.render('assignfeedback_structured/criteriasets', context).done(function(html, js) {
                     templates.replaceNodeContents(modalBody, html, js);
                     spinner.hide();
                     refreshButton.show();
@@ -140,6 +140,6 @@ define(
             }).fail(notification.exception);
         }
 
-        return criteriaSetsManage;
+        return criteriaSets;
     }
 );

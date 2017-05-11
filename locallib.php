@@ -285,26 +285,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Build an array of criterion objects from a saved criteria set to populate the config fields.
-     *
-     * @param array $criteria The criteria for the selected criteria set.
-     * @return array The objects for the config form.
-     */
-    public function build_criteria_config($criteria) {
-        $config = array();
-        foreach ($criteria as $criterion) {
-            $criterion->assignfeedback_structured_critname = $criterion->name;
-            $criterion->assignfeedback_structured_critdesc = $criterion->description;
-            unset($criterion->id);
-            unset($criterion->name);
-            unset($criterion->description);
-            $config[] = $criterion;
-        }
-
-        return $config;
-    }
-
-    /**
      * Get quickgrading form elements as html.
      *
      * @param int $userid The user id in the table this quickgrading element relates to.
@@ -634,7 +614,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 'contextid' => $PAGE->context->id,
                 'manage'    => false
             ), $criteriasets);
-            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsmanage', 'init', $params);
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
         } else {
             $mform->updateElementAttr('assignfeedback_structured_critset',
                     array('title' => $criteriasets, 'disabled' => 'disabled'));
@@ -690,7 +670,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 'contextid' => $PAGE->context->id,
                 'manage'    => true
             ), $criteriasets);
-            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsmanage', 'init', $params);
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
         } else {
             $mform->updateElementAttr('assignfeedback_structured_critsetsmanage', array('disabled' => 'disabled'));
         }
