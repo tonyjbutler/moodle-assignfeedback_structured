@@ -64,58 +64,62 @@
 }}
 <div class="assignfeedback_structured_criteriasetsmanage">
     <div class="criteriasets-page" data-context="{{contextId}}">
-        {{^manage}}
-            <h5>{{#str}} criteriasetsowned, assignfeedback_structured {{/str}}</h5>
-            {{^ownedSets}}
-                {{#str}} noownedsets, assignfeedback_structured {{/str}}
-            {{/ownedSets}}
-        {{/manage}}
-        {{#ownedSets}}
-            <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
-                <div class="pull-xs-left">
-                    <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
-                </div>
-                <div class="pull-xs-right">
-                    {{> core/loading }}
-                    {{#manage}}
-                        <button type="button" class="btn btn-primary" data-set-action="delete">
-                            {{#str}} delete {{/str}}
-                        </button>
-                    {{/manage}}
-                    {{^manage}}
-                        <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
-                            {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
-                        </button>
-                    {{/manage}}
-                </div>
-                <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
-                    {{> core/loading }}
-                </div>
-                <div class="clearer"></div>
-            </div>
-        {{/ownedSets}}
-        {{^manage}}
-            <h5>{{#str}} criteriasetspublic, assignfeedback_structured {{/str}}</h5>
-            {{^publicSets}}
-                {{#str}} nopublicsets, assignfeedback_structured {{/str}}
-            {{/publicSets}}
-            {{#publicSets}}
+        <div class="criteriasets-owned">
+            {{^manage}}
+                <h5>{{#str}} criteriasetsowned, assignfeedback_structured {{/str}}</h5>
+                {{^ownedSets}}
+                    {{#str}} noownedsets, assignfeedback_structured {{/str}}
+                {{/ownedSets}}
+            {{/manage}}
+            {{#ownedSets}}
                 <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                     <div class="pull-xs-left">
                         <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
                     </div>
                     <div class="pull-xs-right">
                         {{> core/loading }}
-                        <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
-                            {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
-                        </button>
+                        {{#manage}}
+                            <button type="button" class="btn btn-primary" data-set-action="delete">
+                                {{#str}} delete {{/str}}
+                            </button>
+                        {{/manage}}
+                        {{^manage}}
+                            <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
+                                {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
+                            </button>
+                        {{/manage}}
                     </div>
                     <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
                         {{> core/loading }}
                     </div>
                     <div class="clearer"></div>
                 </div>
-            {{/publicSets}}
+            {{/ownedSets}}
+        </div>
+        {{^manage}}
+            <div class="criteriasets-public">
+                <h5>{{#str}} criteriasetspublic, assignfeedback_structured {{/str}}</h5>
+                {{^publicSets}}
+                    {{#str}} nopublicsets, assignfeedback_structured {{/str}}
+                {{/publicSets}}
+                {{#publicSets}}
+                    <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
+                        <div class="pull-xs-left">
+                            <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
+                        </div>
+                        <div class="pull-xs-right">
+                            {{> core/loading }}
+                            <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
+                                {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
+                            </button>
+                        </div>
+                        <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
+                            {{> core/loading }}
+                        </div>
+                        <div class="clearer"></div>
+                    </div>
+                {{/publicSets}}
+            </div>
         {{/manage}}
     </div>
 </div>
@@ -129,6 +133,25 @@
     ],
     function($, ajax, notification, str, templates) {
         $('.loading-icon').hide();
+
+        // Set initial display of public criteria sets.
+        var showPublic = $('.criteriasets-footer').find('[data-action="show-public"]'),
+            publicSets = $('.criteriasets-page').find('.criteriasets-public');
+        togglePublic(showPublic, publicSets);
+
+        // Toggle display of public sets on checkbox click.
+        showPublic.on('click', function() {
+            togglePublic(showPublic, publicSets);
+        });
+
+        // Function to determine display of public sets.
+        function togglePublic(showPublic, publicSets) {
+            if (showPublic.prop('checked')) {
+                publicSets.show();
+            } else {
+                publicSets.hide();
+            }
+        }
 
         // Get criteria data when expanded for the first time.
         var criteriaToggle = $('[data-toggle="collapse"]');
@@ -149,7 +172,7 @@
          * @return {object} A jQuery promise.
          */
         function getCriteria(set) {
-            var contextId = set.parent().data('context'),
+            var contextId = set.parent().parent().data('context'),
                 setId = set.data('criteriaset-id'),
                 criteriaNode = set.children('.criteria-data'),
                 deferred = $.Deferred();
@@ -189,7 +212,7 @@
         var deleteButton = $('[data-set-action="delete"]');
         deleteButton.on('click', function() {
             var set = $(this).parent().parent(),
-                contextId = set.parent().data('context'),
+                contextId = set.parent().parent().data('context'),
                 setId = set.data('criteriaset-id'),
                 setName = set.data('criteriaset-name'),
                 spinner = $(this).siblings('.loading-icon');

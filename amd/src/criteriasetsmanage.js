@@ -57,37 +57,41 @@ define(
                         ownedSets: ownedSets,
                         publicSets: publicSets
                     };
+                    var footerContext = {
+                        manage: manage
+                    };
                     var title = s[0],
                         trigger = $('#id_assignfeedback_structured_critset');
                     if (manage) {
                         title = s[1];
                         trigger = $('#id_assignfeedback_structured_critsetsmanage');
                     }
-                    templates.render('assignfeedback_structured/criteriasetsmanage_footer', []).done(function(footer) {
+                    templates.render('assignfeedback_structured/criteriasetsmanage_footer', footerContext).done(function(footer) {
                         ModalFactory.create({
                             title: title,
                             body: templates.render('assignfeedback_structured/criteriasetsmanage', context),
                             footer: footer,
                             large: false
                         }, trigger).done(function(modal) {
-                            var refreshButton = modal.getFooter().find('[data-action="refresh"]');
-                            refreshButton.on('click', function() {
-                                refreshSets(modal, contextId, manage);
-                            });
-                            // Refresh automatically when showing the non-management modal.
-                            if (!manage) {
+                            if (manage) {
+                                var refreshButton = modal.getFooter().find('[data-action="refresh"]');
+                                refreshButton.on('click', function() {
+                                    refreshSets(modal, contextId, manage);
+                                });
+                            } else {
+                                // Refresh automatically when showing the non-management modal.
                                 modal.getRoot().on(ModalEvents.shown, function() {
                                     refreshSets(modal, contextId, manage);
                                 });
                             }
-                        });
+                        }).fail(notification.exception);
                     }).fail(notification.exception);
                 });
 
                 // Add a hidden spinner after the 'Use a saved criteria set' button.
                 if (!manage) {
                     var setButton = $('#id_assignfeedback_structured_critset');
-                    templates.render('core/loading', []).done(function(html, js) {
+                    templates.render('core/loading', {}).done(function(html, js) {
                         templates.appendNodeContents(setButton.parent(), html, js);
                         setButton.siblings('.loading-icon').hide();
                     }).fail(notification.exception);

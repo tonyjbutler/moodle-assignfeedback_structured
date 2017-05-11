@@ -20,6 +20,10 @@
     font-style: italic;
 }
 
+.criteriasets-footer label {
+    display: inline;
+}
+
 #page-mod-assign-mod #id_assignfeedback_structured_critset + .loading-icon {
     margin-left: 6px;
     vertical-align: text-bottom;
