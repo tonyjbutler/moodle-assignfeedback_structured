@@ -37,13 +37,13 @@
 <div class="criteriasets-footer">
     {{^manage}}
         <label>
-            <input type="checkbox" name="criteriasets-showpublic" data-action="show-public" checked>
+            <input type="checkbox" name="criteriasets-showpublic" data-action="showpublic" checked>
             {{#str}} criteriasetsshowpublic, assignfeedback_structured {{/str}}
         </label>
     {{/manage}}
-    <button type="button" class="btn btn-primary" data-action="hide">{{#str}} close, assignfeedback_structured {{/str}}</button>
     {{#manage}}
-        <button type="button" class="btn btn-secondary" data-action="refresh">{{#str}} refresh {{/str}}</button>
         {{> core/loading }}
+        <button type="button" class="btn btn-primary" data-action="refresh">{{#str}} refresh {{/str}}</button>
     {{/manage}}
+    <button type="button" class="btn btn-secondary" data-action="hide">{{#str}} close, assignfeedback_structured {{/str}}</button>
 </div>

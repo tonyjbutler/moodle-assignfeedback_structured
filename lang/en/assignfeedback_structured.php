@@ -33,6 +33,7 @@ $string['criteriaset_help'] = 'Click this button to select a previously saved cr
 $string['criteriasetconfirmdelete'] = 'Are you sure you want to permanently delete the criteria set "{$a}"?';
 $string['criteriasetname'] = 'Criteria set name';
 $string['criteriasetname_help'] = 'The name of a criteria set must be unique across the whole site, so please choose it carefully.';
+$string['criteriasetnameedit'] = 'Edit criteria set name';
 $string['criteriasetnameenter'] = 'Enter a unique name';
 $string['criteriasetnameused'] = 'Unfortunately there is already a criteria set named "{$a}". Please try a different name.';
 $string['criteriasetnameusedtitle'] = 'Name already used';
