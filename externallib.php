@@ -269,12 +269,112 @@ class assignfeedback_structured_external extends external_api {
      * @return external_description
      */
     public static function save_criteriaset_returns() {
-        new external_single_structure(
+        return new external_single_structure(
             array(
                 'hide'  => new external_value(PARAM_BOOL, 'Whether or not to hide the save dialogue'),
                 'title' => new external_value(PARAM_TEXT, 'The title of the message to display to the user'),
                 'body'  => new external_value(PARAM_TEXT, 'The body text of the message to display to the user'),
                 'label' => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user')
+            )
+        );
+    }
+
+    /**
+     * Return a description of the parameters for the update_criteriaset method.
+     *
+     * @return external_function_parameters
+     */
+    public static function update_criteriaset_parameters() {
+        return new external_function_parameters(
+            array(
+                'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
+                'criteriasetid' => new external_value(PARAM_INT, 'The ID of the criteria set to be updated'),
+                'updates'       => new external_single_structure(
+                    array(
+                        'name'   => new external_value(PARAM_TEXT, 'The new name for the criteria set', VALUE_OPTIONAL),
+                        'public' => new external_value(PARAM_BOOL, 'Whether the criteria set should be shared', VALUE_OPTIONAL)
+                    ), 'The key/value pairs of attributes to be updated'
+                )
+            )
+        );
+    }
+
+    /**
+     * Update one or more criteria set attributes (e.g. name, visibility) with the new values provided.
+     *
+     * @param int $contextid The context id of the current assignment instance.
+     * @param int $criteriasetid The id of the criteria set to be updated.
+     * @param array $updates The key/value pairs of attributes to be updated.
+     * @return array Details of a message to be displayed to the user.
+     * @throws moodle_exception
+     */
+    public static function update_criteriaset($contextid, $criteriasetid, $updates) {
+        global $CFG, $DB;
+
+        require_once($CFG->dirroot . '/mod/assign/locallib.php');
+        require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
+
+        $parameters = array(
+            'contextid'     => $contextid,
+            'criteriasetid' => $criteriasetid,
+            'updates'       => $updates
+        );
+        self::validate_parameters(self::update_criteriaset_parameters(), $parameters);
+        $context = self::get_context_from_params(array('contextid' => $contextid));
+        self::validate_context($context);
+        if (!has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
+            throw new moodle_exception('nopermissionstoupdate', 'assignfeedback_structured');
+        }
+        foreach ($updates as $key => $value) {
+            if ($key == 'public' && $value == true && !has_capability('assignfeedback/structured:publishcriteriasets', $context)) {
+                throw new moodle_exception('nopermissionstopublish', 'assignfeedback_structured');
+            }
+
+            // Validate global uniqueness of new name if being updated.
+            if ($key == 'name') {
+                if ($DB->record_exists('assignfeedback_structured_cs', array('name' => $value))) {
+                    return array(
+                        'success' => false,
+                        'title'   => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
+                        'body'    => get_string('criteriasetnameused', 'assignfeedback_structured', $value),
+                        'label'   => get_string('continue')
+                    );
+                }
+            }
+        }
+
+        $assignment = new assign($context, null, null);
+        $feedback = new assign_feedback_structured($assignment, 'structured');
+
+        if ($feedback->update_criteria_set($criteriasetid, $updates)) {
+            return array(
+                'success' => true,
+                'title'   => get_string('criteriasetupdated', 'assignfeedback_structured'),
+                'body'    => get_string('criteriasetupdatedsuccess', 'assignfeedback_structured'),
+                'label'   => get_string('ok')
+            );
+        }
+
+        return array(
+            'success' => false,
+            'title'   => get_string('error'),
+            'body'    => get_string('criteriasetnotupdated', 'assignfeedback_structured'),
+            'label'   => get_string('continue')
+        );
+    }
+
+    /**
+     * Return a description of the result value for the update_criteriaset method.
+     *
+     * @return external_description
+     */
+    public static function update_criteriaset_returns() {
+        return new external_single_structure(
+            array(
+                'success' => new external_value(PARAM_BOOL, 'Whether or not the criteria set was successfully updated'),
+                'title'   => new external_value(PARAM_TEXT, 'The title of the message to display to the user'),
+                'body'    => new external_value(PARAM_TEXT, 'The body text of the message to display to the user'),
+                'label'   => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user')
             )
         );
     }

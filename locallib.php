@@ -198,6 +198,39 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
+     * Save a new named criteria set to copy later, using the data provided.
+     *
+     * @param int $criteriasetid The id of the criteria set to be updated.
+     * @param array $updates The key/value pairs of attributes to be updated.
+     * @return bool Success status.
+     */
+    public function update_criteria_set($criteriasetid, $updates) {
+        global $DB, $PAGE;
+
+        // A criteria set id must be provided.
+        if (empty($criteriasetid)) {
+            return false;
+        }
+
+        // Make sure user has the appropriate permissions to update.
+        if (!has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)) {
+            return false;
+        }
+
+        // Write the updates to the database.
+        $criteriaset = new stdClass();
+        $criteriaset->id = $criteriasetid;
+        foreach ($updates as $key => $value) {
+            $criteriaset->$key = $value;
+        }
+        if (!$DB->update_record('assignfeedback_structured_cs', $criteriaset)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Delete the saved criteria set with the given id, provided it isn't used in an assignment.
      *
      * @param int $criteriasetid The id of the criteria set to be deleted.
