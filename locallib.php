@@ -679,33 +679,35 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->disabledIf('assignfeedback_structured_critfieldsadd', $lastfield, 'eq', '');
         $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
 
-        // Enable teachers to save criteria sets for use in other assignments.
-        $criteriasetsavebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsave',
-                get_string('criteriasetsave', 'assignfeedback_structured'));
-        $criteriasetsavebutton->setLabel(get_string('criteriasetsave', 'assignfeedback_structured'));
-        $mform->addHelpButton('assignfeedback_structured_critsetsave', 'criteriasetsave', 'assignfeedback_structured');
-        $mform->setAdvanced('assignfeedback_structured_critsetsave');
-        $mform->disabledIf('assignfeedback_structured_critsetsave', 'assignfeedback_structured_critname[0]', 'eq', '');
-        $params = array(
-            'contextid'  => $PAGE->context->id,
-            'canpublish' => has_capability('assignfeedback/structured:publishcriteriasets', $PAGE->context)
-        );
-        $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsave', 'init', $params);
+        if (has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)) {
+            // Enable teachers to save criteria sets for use in other assignments.
+            $criteriasetsavebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsave',
+                    get_string('criteriasetsave', 'assignfeedback_structured'));
+            $criteriasetsavebutton->setLabel(get_string('criteriasetsave', 'assignfeedback_structured'));
+            $mform->addHelpButton('assignfeedback_structured_critsetsave', 'criteriasetsave', 'assignfeedback_structured');
+            $mform->setAdvanced('assignfeedback_structured_critsetsave');
+            $mform->disabledIf('assignfeedback_structured_critsetsave', 'assignfeedback_structured_critname[0]', 'eq', '');
+            $params = array(
+                'contextid'  => $PAGE->context->id,
+                'canpublish' => has_capability('assignfeedback/structured:publishcriteriasets', $PAGE->context)
+            );
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsave', 'init', $params);
 
-        // Enable teachers to manage their saved criteria sets.
-        $criteriasetsmanagebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsmanage',
-                get_string('criteriasetsmanage', 'assignfeedback_structured'));
-        $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
-        $mform->addHelpButton('assignfeedback_structured_critsetsmanage', 'criteriasetsmanage', 'assignfeedback_structured');
-        $mform->setAdvanced('assignfeedback_structured_critsetsmanage');
-        if ($criteriasets = $this->get_criteria_sets_for_user(false)) {
-            $params = array_merge(array(
-                'contextid' => $PAGE->context->id,
-                'manage'    => true
-            ), $criteriasets);
-            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
-        } else {
-            $mform->updateElementAttr('assignfeedback_structured_critsetsmanage', array('disabled' => 'disabled'));
+            // Enable teachers to manage their saved criteria sets.
+            $criteriasetsmanagebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsmanage',
+                    get_string('criteriasetsmanage', 'assignfeedback_structured'));
+            $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
+            $mform->addHelpButton('assignfeedback_structured_critsetsmanage', 'criteriasetsmanage', 'assignfeedback_structured');
+            $mform->setAdvanced('assignfeedback_structured_critsetsmanage');
+            if ($criteriasets = $this->get_criteria_sets_for_user(false)) {
+                $params = array_merge(array(
+                    'contextid' => $PAGE->context->id,
+                    'manage'    => true
+                ), $criteriasets);
+                $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
+            } else {
+                $mform->updateElementAttr('assignfeedback_structured_critsetsmanage', array('disabled' => 'disabled'));
+            }
         }
 
         // If this is not the last feedback plugin, add a section to contain the settings for the rest.
