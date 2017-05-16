@@ -43,10 +43,11 @@ define(
              *
              * @param {number} contextId The context ID of the current assignment instance.
              * @param {boolean} manage Whether a full management interface is required (otherwise it's read only).
+             * @param {boolean} canPublish Whether the current user can publish criteria sets.
              * @param {object[]} ownedSets An array of data objects for all saved criteria sets owned by the current user.
              * @param {object[]} publicSets An array of data objects for any other available criteria sets.
              */
-            init: function(contextId, manage, ownedSets, publicSets) {
+            init: function(contextId, manage, canPublish, ownedSets, publicSets) {
                 str.get_strings([
                     {key: 'criteriasetssaved', component: 'assignfeedback_structured'},
                     {key: 'criteriasetsmanage', component: 'assignfeedback_structured'}
@@ -54,6 +55,7 @@ define(
                     var context = {
                         contextId: contextId,
                         manage: manage,
+                        canPublish: canPublish,
                         ownedSets: ownedSets,
                         publicSets: publicSets
                     };
@@ -76,12 +78,12 @@ define(
                             if (manage) {
                                 var refreshButton = modal.getFooter().find('[data-action="refresh"]');
                                 refreshButton.on('click', function() {
-                                    refreshSets(modal, contextId, manage);
+                                    refreshSets(modal, contextId, manage, canPublish);
                                 });
                             } else {
                                 // Refresh automatically when showing the non-management modal.
                                 modal.getRoot().on(ModalEvents.shown, function() {
-                                    refreshSets(modal, contextId, manage);
+                                    refreshSets(modal, contextId, manage, canPublish);
                                 });
                             }
                         }).fail(notification.exception);
@@ -105,8 +107,9 @@ define(
          * @param {object} modal The modal dialogue to be refreshed.
          * @param {number} contextId The context ID of the current assignment instance.
          * @param {boolean} manage Whether the modal provides a management interface.
+         * @param {boolean} canPublish Whether the current user can publish criteria sets.
          */
-        function refreshSets(modal, contextId, manage) {
+        function refreshSets(modal, contextId, manage, canPublish) {
             var modalBody = modal.getBody(),
                 modalFooter = modal.getFooter(),
                 refreshButton = modalFooter.find('[data-action="refresh"]'),
@@ -129,6 +132,7 @@ define(
                 var context = {
                     contextId: contextId,
                     manage: manage,
+                    canPublish: canPublish,
                     ownedSets: response.ownedSets,
                     publicSets: response.publicSets
                 };

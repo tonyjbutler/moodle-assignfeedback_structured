@@ -32,6 +32,7 @@
     Context variables required for this template:
     * contextId The context ID of the current assignment instance.
     * manage Whether a full management interface is required (otherwise it's read only).
+    * canPublish Whether the current user can publish criteria sets.
     * ownedSets An array of data objects for all saved criteria sets owned by the current user.
     * publicSets An array of data objects for any other available criteria sets.
 
@@ -39,16 +40,17 @@
     {
         "contextId": 1,
         "manage": true,
+        "canPublish": false,
         "ownedSets": [
             {
                 "id": 1,
                 "name": "Criteria set 1",
-                "public": 0
+                "public": true
             },
             {
                 "id": 2,
                 "name": "Criteria set 2",
-                "public": 1
+                "public": false
             }
         ],
         "publicSets": [
@@ -90,10 +92,13 @@
                     <div class="pull-xs-right">
                         {{> core/loading }}
                         {{#manage}}
-                            <label>
-                                <input type="checkbox" name="criteriaset-public" data-set-action="public"/>
-                                {{#str}} criteriasetpublic, assignfeedback_structured {{/str}}
-                            </label>
+                            {{#canPublish}}
+                                <label>
+                                    <input type="checkbox" name="criteriaset-public" data-set-action="public"
+                                        {{#public}} checked {{/public}}/>
+                                    {{#str}} criteriasetpublic, assignfeedback_structured {{/str}}
+                                </label>
+                            {{/canPublish}}
                             <button type="button" class="btn btn-primary" data-set-action="delete">
                                 {{#str}} delete {{/str}}
                             </button>
@@ -288,7 +293,27 @@
             });
         });
 
-        // Function to update a criteria set via AJAX.
+        // Change shared visibility of a criteria set.
+        $('[data-set-action="public"]').on('change', function() {
+            var set = $(this).parent().parent().parent(),
+                updates = {
+                    public: $(this).prop('checked')
+                },
+                spinner = $(this).parent().siblings('.loading-icon');
+
+            spinner.show();
+            updateCriteriaSet(set, updates)
+                .done(spinner.hide())
+                .fail(notification.exception);
+        });
+
+        /**
+         * Function to call a web service method via AJAX to update a criteria set with the data provided.
+         *
+         * @param {object} set The node containing the details of the criteria set to be updated.
+         * @param {object} updates A set of key/value pairs of data fields to be updated.
+         * @return {object} A jQuery promise.
+         */
         function updateCriteriaSet(set, updates) {
             var contextId = set.parent().parent().data('context'),
                 setId = set.data('criteriaset-id'),

@@ -155,8 +155,9 @@ class assignfeedback_structured_external extends external_api {
                 'ownedSets' => new external_multiple_structure(
                     new external_single_structure(
                         array(
-                            'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),
-                            'name' => new external_value(PARAM_RAW, 'The criteria set name')
+                            'id'     => new external_value(PARAM_TEXT, 'The criteria set ID'),
+                            'name'   => new external_value(PARAM_RAW, 'The criteria set name'),
+                            'public' => new external_value(PARAM_BOOL, 'Whether the criteria set is shared')
                         ), 'The data for a single owned criteria set'
                     ), 'The data for any owned criteria sets', VALUE_OPTIONAL
                 ),
