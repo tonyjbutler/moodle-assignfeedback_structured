@@ -71,7 +71,7 @@ define(
                             title: title,
                             body: templates.render('assignfeedback_structured/criteriasets', context),
                             footer: footer,
-                            large: manage
+                            large: false
                         }, trigger).done(function(modal) {
                             if (manage) {
                                 var refreshButton = modal.getFooter().find('[data-action="refresh"]');

@@ -42,11 +42,13 @@
         "ownedSets": [
             {
                 "id": 1,
-                "name": "Criteria set 1"
+                "name": "Criteria set 1",
+                "public": 0
             },
             {
                 "id": 2,
-                "name": "Criteria set 2"
+                "name": "Criteria set 2",
+                "public": 1
             }
         ],
         "publicSets": [
@@ -77,19 +79,21 @@
                         <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
                         {{#manage}}
                             <input type="text" name="criteriaset-newname" size="32" maxlength="64"/>
-                            <span data-set-action="editname">
+                            <a href="#" data-set-action="editname" role="button">
                                 {{#pix}}
                                     t/editstring, core, {{#str}} criteriasetnameedit, assignfeedback_structured {{/str}}
                                 {{/pix}}
-                            </span>
+                            </a>
+                            {{> core/loading }}
                         {{/manage}}
                     </div>
                     <div class="pull-xs-right">
                         {{> core/loading }}
                         {{#manage}}
-                            <button type="button" class="btn btn-primary" data-set-action="update" disabled>
-                                {{#str}} update {{/str}}
-                            </button>
+                            <label>
+                                <input type="checkbox" name="criteriaset-public" data-set-action="public"/>
+                                {{#str}} criteriasetpublic, assignfeedback_structured {{/str}}
+                            </label>
                             <button type="button" class="btn btn-primary" data-set-action="delete">
                                 {{#str}} delete {{/str}}
                             </button>
@@ -219,80 +223,94 @@
             return deferred.promise();
         }
 
-        // Edit criteria set name.
-        var nameInputs = $('[name="criteriaset-newname"]'),
-            editButton = $('[data-set-action="editname"]');
-
-        // Hide all name input fields by default.
-        nameInputs.hide();
-        editButton.css('cursor', 'pointer');
-        editButton.on('click', function() {
+        // Edit criteria set name on button click.
+        $('[name="criteriaset-newname"]').hide();
+        $('[data-set-action="editname"]').on('click', function(e) {
+            e.preventDefault();
             var set = $(this).parent().parent(),
                 setName = set.data('criteriaset-name'),
-                nameElement = $(this).siblings('a'),
+                editButton = $(this),
+                nameElement = $(this).siblings('[data-toggle="collapse"]'),
                 nameInput = $(this).siblings('[name="criteriaset-newname"]');
 
-            // Hide name and icon and show input field.
-            $(this).hide();
+            // Hide name and button and show input field.
+            editButton.hide();
             nameElement.hide();
             nameInput.val(setName);
             nameInput.show();
             nameInput.focus();
             nameInput.select();
 
-            // Blur on enter key.
-            nameInput.keypress(function(e) {
-                if (e.which == 13) {
-                    nameInput.blur();
-                }
-            });
+            // On blur, hide input field and set the new name (if changed).
+            nameInput.off().on('blur keydown', function(e) {
+                var newName = nameInput.val().trim(),
+                    spinner = nameInput.siblings('.loading-icon');
 
-            // On blur, hide input field and set the new name.
-            nameInput.on('blur', function() {
-                var newName = nameInput.val();
-                nameInput.hide();
-                if (newName != setName) {
-                    setName = newName;
-                    nameElement.text(newName);
-                    set.data('criteriaset-name', newName);
-                    set.find('[data-set-action="update"]').prop('disabled', false);
+                // Prevent multiple blur triggers with key presses.
+                if (e.type == 'keydown' && (e.keyCode == 13 || e.keyCode == 27)) {
+                    nameInput.off('blur');
                 }
-                nameElement.show();
-                set.find('[data-set-action="editname"]').show();
+                if (e.keyCode == 27) {
+                    // Cancel on escape.
+                    e.stopPropagation();
+                    nameInput.hide();
+                    nameElement.show();
+                    editButton.show();
+                } else if (e.type == 'blur' || e.keyCode == 13) {
+                    // Save on enter (or any other loss of focus).
+                    if (newName != setName) {
+                        var updates = {
+                            name: newName
+                        };
+                        spinner.show();
+                        updateCriteriaSet(set, updates).done(function(response) {
+                            if (response['success'] === true) {
+                                nameInput.hide();
+                                setName = newName;
+                                set.data('criteriaset-name', newName);
+                                nameElement.text(newName);
+                                nameElement.show();
+                                editButton.show();
+                            } else {
+                                notification.alert(response['title'], response['body'], response['label']);
+                                nameInput.hide();
+                                nameElement.show();
+                                editButton.show();
+                            }
+                            spinner.hide();
+                        }).fail(notification.exception);
+                    } else {
+                        nameInput.hide();
+                        nameElement.show();
+                        editButton.show();
+                    }
+                }
             });
         });
 
-        // Update criteria set.
-        var updateButton = $('[data-set-action="update"]');
-        updateButton.on('click', function() {
-            var set = $(this).parent().parent(),
-                contextId = set.parent().parent().data('context'),
+        // Function to update a criteria set via AJAX.
+        function updateCriteriaSet(set, updates) {
+            var contextId = set.parent().parent().data('context'),
                 setId = set.data('criteriaset-id'),
-                setName = set.data('criteriaset-name'),
-                spinner = $(this).siblings('.loading-icon');
-
-            spinner.show();
+                deferred = $.Deferred();
 
             var request = ajax.call([{
                 methodname: 'assignfeedback_structured_update_criteriaset',
                 args: {
                     contextid: contextId,
                     criteriasetid: setId,
-                    updates: {
-                        name: setName
-                    }
+                    updates: updates
                 }
             }]);
 
             request[0].done(function(response) {
-                if (response['success'] === true) {
-                    set.find('[data-set-action="update"]').prop('disabled', true);
-                }
-                notification.alert(response['title'], response['body'], response['label']);
-            }).fail(notification.exception).always(function() {
-                spinner.hide();
+                deferred.resolve(response);
+            }).fail(function(ex) {
+                deferred.reject(ex);
             });
-        });
+
+            return deferred.promise();
+        }
 
         // Delete criteria set.
         var deleteButton = $('[data-set-action="delete"]');

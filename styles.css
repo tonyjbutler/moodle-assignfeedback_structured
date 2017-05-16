@@ -2,13 +2,13 @@
     padding: 3px 0;
 }
 
-.criteriasets-page .criteriaset-row .pull-xs-left a::before {
+.criteriasets-page .criteriaset-row a[data-toggle="collapse"]::before {
     content: url([[pix:core|t/expanded]]);
     vertical-align: text-top;
     margin-right: 3px;
 }
 
-.criteriasets-page .criteriaset-row .pull-xs-left a.collapsed::before {
+.criteriasets-page .criteriaset-row a[data-toggle="collapse"].collapsed::before {
     content: url([[pix:core|t/collapsed]]);
 }
 
@@ -20,8 +20,9 @@
     font-style: italic;
 }
 
-.criteriasets-footer label {
+.criteriasets-page label, .criteriasets-footer label {
     display: inline;
+    margin-right: 6px;
 }
 
 #page-mod-assign-mod #id_assignfeedback_structured_critset + .loading-icon {

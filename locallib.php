@@ -122,7 +122,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
     public function get_criteria_sets_for_user($includepublic = false) {
         global $DB, $USER;
 
-        // Return an error if any criteria are defined and have feedback already.
+        // Return an error if user is copying, and any criteria are defined and have feedback already.
         if ($criteria = $this->get_criteria() and $includepublic) {
             foreach ($criteria as $criterion) {
                 if ($this->is_criterion_used($criterion->id)) {
@@ -138,7 +138,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         if (!has_capability('moodle/site:config', context_system::instance()) || $includepublic) {
             $select .= " AND owner = :user";
         }
-        $ownedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
+        $ownedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name, public');
         if ($ownedsets) {
             $criteriasets['ownedSets'] = array_values($ownedsets);
         }

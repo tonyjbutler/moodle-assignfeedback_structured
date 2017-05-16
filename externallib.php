@@ -330,8 +330,18 @@ class assignfeedback_structured_external extends external_api {
                 throw new moodle_exception('nopermissionstopublish', 'assignfeedback_structured');
             }
 
-            // Validate global uniqueness of new name if being updated.
+            // Validate new name if being updated.
             if ($key == 'name') {
+                // The name cannot be empty.
+                if (empty($value)) {
+                    return array(
+                        'success' => false,
+                        'title'   => get_string('criteriasetnonametitle', 'assignfeedback_structured'),
+                        'body'    => get_string('criteriasetnoname', 'assignfeedback_structured'),
+                        'label'   => get_string('continue')
+                    );
+                }
+                // It must also be globally unique.
                 if ($DB->record_exists('assignfeedback_structured_cs', array('name' => $value))) {
                     return array(
                         'success' => false,
