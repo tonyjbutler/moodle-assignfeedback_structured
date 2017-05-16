@@ -37,10 +37,7 @@ define(['jquery', 'core/templates'], function($, templates) {
                 criteriaData: criteriaData
             };
 
-            var criteria = templates.render('assignfeedback_structured/criteria', context);
-            criteria.done(function(html, js) {
-                templates.appendNodeContents($('[role="main"]'), html, js);
-            });
+            templates.render('assignfeedback_structured/criteria', context);
         }
     };
 });
