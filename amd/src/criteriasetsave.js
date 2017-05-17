@@ -55,6 +55,8 @@ define(
                         type: ModalFactory.types.SAVE_CANCEL,
                         large: false
                     }, trigger).done(function(modal) {
+                        // Disable save button initially.
+                        modal.getFooter().find('[data-action="save"]').prop('disabled', true);
                         modal.getRoot().on(ModalEvents.save, function(e) {
                             e.preventDefault();
                             saveSet(modal, contextId);
@@ -63,6 +65,7 @@ define(
                         modal.getRoot().on(ModalEvents.hidden, function() {
                             $(this).find('[name="criteriaset-name"]').val('');
                             $(this).find('[name="criteriaset-publish"]').prop('checked', false);
+                            $(this).find('[data-action="save"]').prop('disabled', true);
                         });
                     }).fail(notification.exception);
                 }).fail(notification.exception);
