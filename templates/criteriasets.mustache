@@ -80,7 +80,8 @@
                     <div class="pull-xs-left">
                         <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
                         {{#manage}}
-                            <input type="text" name="criteriaset-newname" size="32" maxlength="64"/>
+                            <input type="text" name="criteriaset-newname" size="32" maxlength="64"
+                                   title="{{#str}} escapetocancel, assignfeedback_structured {{/str}}">
                             <a href="#" data-set-action="editname" role="button">
                                 {{#pix}}
                                     t/editstring, core, {{#str}} criteriasetnameedit, assignfeedback_structured {{/str}}
@@ -95,7 +96,7 @@
                             {{#canPublish}}
                                 <label>
                                     <input type="checkbox" name="criteriaset-public" data-set-action="public"
-                                        {{#public}} checked {{/public}}/>
+                                        {{#public}} checked {{/public}}>
                                     {{#str}} criteriasetpublic, assignfeedback_structured {{/str}}
                                 </label>
                             {{/canPublish}}

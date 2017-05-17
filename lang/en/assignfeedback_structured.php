@@ -68,6 +68,7 @@ $string['default'] = 'Enabled by default';
 $string['default_help'] = 'If set, this feedback method will be enabled by default for all new assignments.';
 $string['enabled'] = 'Structured feedback';
 $string['enabled_help'] = 'If enabled, the teacher will be able to define any number of criteria on which to provide specific feedback.';
+$string['escapetocancel'] = 'Escape to cancel';
 $string['nopermissionstodelete'] = 'Sorry, but you do not currently have permissions to delete your saved criteria sets.';
 $string['nopermissionstomanage'] = 'Sorry, but you do not currently have permissions to manage your saved criteria sets.';
 $string['nopermissionstopublish'] = 'Sorry, but you do not currently have permissions to share your saved criteria sets.';
