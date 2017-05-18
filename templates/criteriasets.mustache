@@ -264,7 +264,7 @@
                     editButton.show();
                 } else if (e.type == 'blur' || e.keyCode == 13) {
                     // Save on enter (or any other loss of focus).
-                    if (newName != setName) {
+                    if (newName && newName != setName) {
                         var updates = {
                             name: newName
                         };
