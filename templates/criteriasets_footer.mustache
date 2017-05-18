@@ -41,9 +41,7 @@
             {{#str}} criteriasetsshowpublic, assignfeedback_structured {{/str}}
         </label>
     {{/manage}}
-    {{#manage}}
-        {{> core/loading }}
-        <button type="button" class="btn btn-secondary" data-action="refresh">{{#str}} refresh {{/str}}</button>
-    {{/manage}}
+    {{> core/loading }}
+    <button type="button" class="btn btn-secondary" data-action="refresh">{{#str}} refresh {{/str}}</button>
     <button type="button" class="btn btn-secondary" data-action="hide">{{#str}} close, assignfeedback_structured {{/str}}</button>
 </div>

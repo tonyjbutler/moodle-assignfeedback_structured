@@ -75,17 +75,14 @@ define(
                             footer: footer,
                             large: false
                         }, trigger).done(function(modal) {
-                            if (manage) {
-                                var refreshButton = modal.getFooter().find('[data-action="refresh"]');
-                                refreshButton.on('click', function() {
-                                    refreshSets(modal, contextId, manage, canPublish);
-                                });
-                            } else {
-                                // Refresh automatically when showing the non-management modal.
-                                modal.getRoot().on(ModalEvents.shown, function() {
-                                    refreshSets(modal, contextId, manage, canPublish);
-                                });
-                            }
+                            var refreshButton = modal.getFooter().find('[data-action="refresh"]');
+                            refreshButton.on('click', function() {
+                                refreshSets(modal, contextId, manage, canPublish);
+                            });
+                            // Refresh automatically when showing the modal.
+                            modal.getRoot().on(ModalEvents.shown, function() {
+                                refreshSets(modal, contextId, manage, canPublish);
+                            });
                         }).fail(notification.exception);
                     }).fail(notification.exception);
                 });
