@@ -64,7 +64,7 @@
         var nameInput = $('[name="criteriaset-name"]'),
             saveButton = $('[data-action="save"]');
 
-        nameInput.on('blur', function() {
+        nameInput.on('keyup', function() {
             if ($(this).val().trim()) {
                 saveButton.prop('disabled', false);
             } else {
