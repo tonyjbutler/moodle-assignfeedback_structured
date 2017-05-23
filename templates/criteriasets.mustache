@@ -71,10 +71,10 @@
         <div class="criteriasets-owned">
             {{^manage}}
                 <h5>{{#str}} criteriasetsowned, assignfeedback_structured {{/str}}</h5>
-                {{^ownedSets}}
-                    {{#str}} noownedsets, assignfeedback_structured {{/str}}
-                {{/ownedSets}}
             {{/manage}}
+            {{^ownedSets}}
+                {{#str}} noownedsets, assignfeedback_structured {{/str}}
+            {{/ownedSets}}
             {{#ownedSets}}
                 <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                     <div class="pull-xs-left">

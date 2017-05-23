@@ -152,7 +152,7 @@ class assignfeedback_structured_external extends external_api {
     public static function get_criteriasets_returns() {
         return new external_single_structure(
             array(
-                'ownedSets' => new external_multiple_structure(
+                'ownedsets' => new external_multiple_structure(
                     new external_single_structure(
                         array(
                             'id'     => new external_value(PARAM_TEXT, 'The criteria set ID'),
@@ -161,7 +161,7 @@ class assignfeedback_structured_external extends external_api {
                         ), 'The data for a single owned criteria set'
                     ), 'The data for any owned criteria sets', VALUE_OPTIONAL
                 ),
-                'publicSets' => new external_multiple_structure(
+                'publicsets' => new external_multiple_structure(
                     new external_single_structure(
                         array(
                             'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),

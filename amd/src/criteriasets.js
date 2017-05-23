@@ -130,8 +130,8 @@ define(
                     contextId: contextId,
                     manage: manage,
                     canPublish: canPublish,
-                    ownedSets: response.ownedSets,
-                    publicSets: response.publicSets
+                    ownedSets: response.ownedsets,
+                    publicSets: response.publicsets
                 };
                 templates.render('assignfeedback_structured/criteriasets', context).done(function(html, js) {
                     templates.replaceNodeContents(modalBody, html, js);

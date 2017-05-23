@@ -143,14 +143,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
             foreach ($ownedsets as $ownedset) {
                 $ownedset->public = (bool) $ownedset->public;
             }
-            $criteriasets['ownedSets'] = array_values($ownedsets);
+            $criteriasets['ownedsets'] = array_values($ownedsets);
         }
 
         if ($includepublic) {
             $select = "name <> '' AND owner <> :user AND public = 1";
             $publicsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
             if ($publicsets) {
-                $criteriasets['publicSets'] = array_values($publicsets);
+                $criteriasets['publicsets'] = array_values($publicsets);
             }
         }
 
@@ -705,16 +705,17 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
             $mform->addHelpButton('assignfeedback_structured_critsetsmanage', 'criteriasetsmanage', 'assignfeedback_structured');
             $mform->setAdvanced('assignfeedback_structured_critsetsmanage');
+            $params = array(
+                'contextid'  => $PAGE->context->id,
+                'manage'     => true,
+                'canpublish' => has_capability('assignfeedback/structured:publishcriteriasets', $PAGE->context)
+            );
             if ($criteriasets = $this->get_criteria_sets_for_user(false)) {
-                $params = array_merge(array(
-                    'contextid'  => $PAGE->context->id,
-                    'manage'     => true,
-                    'canpublish' => has_capability('assignfeedback/structured:publishcriteriasets', $PAGE->context)
-                ), $criteriasets);
-                $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
+                $params = array_merge($params, $criteriasets);
             } else {
                 $mform->updateElementAttr('assignfeedback_structured_critsetsmanage', array('disabled' => 'disabled'));
             }
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
         }
 
         // If this is not the last feedback plugin, add a section to contain the settings for the rest.

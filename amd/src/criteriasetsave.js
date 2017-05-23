@@ -116,6 +116,7 @@ define(
             request[0].done(function(response) {
                 if (response['hide'] === true) {
                     modal.hide();
+                    $('#id_assignfeedback_structured_critsetsmanage').prop('disabled', false);
                 }
                 notification.alert(response['title'], response['body'], response['label']);
             }).fail(notification.exception).always(function() {
