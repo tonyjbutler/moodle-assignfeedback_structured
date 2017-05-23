@@ -81,9 +81,12 @@ define(
         function saveSet(modal, contextId) {
             var modalNode = modal.getRoot(),
                 name = modalNode.find('[name="criteriaset-name"]').val().trim(),
-                public = modalNode.find('[name="criteriaset-publish"]').prop('checked'),
+                public = false,
                 spinner = modalNode.find('.loading-icon');
 
+            if (modalNode.find('[name="criteriaset-publish"]').prop('checked')) {
+                public = true;
+            }
             spinner.show();
 
             var criteria = [];
