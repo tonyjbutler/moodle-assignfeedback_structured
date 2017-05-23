@@ -202,7 +202,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Save a new named criteria set to copy later, using the data provided.
+     * Update one or more criteria set attributes (e.g. name, visibility) with the new values provided.
      *
      * @param int $criteriasetid The id of the criteria set to be updated.
      * @param array $updates The key/value pairs of attributes to be updated.

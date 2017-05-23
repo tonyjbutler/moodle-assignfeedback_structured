@@ -343,14 +343,18 @@ class assignfeedback_structured_external extends external_api {
                     );
                 }
                 // It must also be globally unique.
-                if ($DB->record_exists('assignfeedback_structured_cs', array('name_lc' => strtolower($value)))) {
-                    return array(
-                        'success' => false,
-                        'title'   => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
-                        'body'    => get_string('criteriasetnameused', 'assignfeedback_structured', $value),
-                        'label'   => get_string('continue')
-                    );
+                $namelc = strtolower($value);
+                if ($criteriaset = $DB->get_record('assignfeedback_structured_cs', array('name_lc' => $namelc), 'id')) {
+                    if ($criteriaset->id != $criteriasetid) {
+                        return array(
+                            'success' => false,
+                            'title'   => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
+                            'body'    => get_string('criteriasetnameused', 'assignfeedback_structured', $value),
+                            'label'   => get_string('continue')
+                        );
+                    }
                 }
+                $updates = array_merge($updates, array('name_lc' => $namelc));
             }
         }
 
