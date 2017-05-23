@@ -249,7 +249,7 @@
 
             // On blur, hide input field and set the new name (if changed).
             nameInput.off().on('blur keydown', function(e) {
-                var newName = nameInput.val().trim(),
+                var rawName = nameInput.val().trim(),
                     spinner = nameInput.siblings('.loading-icon');
 
                 // Prevent multiple blur triggers with key presses.
@@ -264,6 +264,8 @@
                     editButton.show();
                 } else if (e.type == 'blur' || e.keyCode == 13) {
                     // Save on enter (or any other loss of focus).
+                    var newName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                    nameInput.val(newName);
                     if (newName && newName != setName) {
                         var updates = {
                             name: newName

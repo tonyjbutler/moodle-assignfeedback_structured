@@ -239,7 +239,7 @@ class assignfeedback_structured_external extends external_api {
             return array(
                 'hide'  => false,
                 'title' => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
-                'body'  => get_string('criteriasetnameused', 'assignfeedback_structured', $name),
+                'body'  => get_string('criteriasetnameused', 'assignfeedback_structured', ucfirst($name)),
                 'label' => get_string('continue')
             );
         }
@@ -251,7 +251,7 @@ class assignfeedback_structured_external extends external_api {
             return array(
                 'hide'  => true,
                 'title' => get_string('criteriasetsaved', 'assignfeedback_structured'),
-                'body'  => get_string('criteriasetsavedsuccess', 'assignfeedback_structured', $name),
+                'body'  => get_string('criteriasetsavedsuccess', 'assignfeedback_structured', ucfirst($name)),
                 'label' => get_string('ok')
             );
         }
@@ -342,7 +342,10 @@ class assignfeedback_structured_external extends external_api {
                         'label'   => get_string('continue')
                     );
                 }
-                // It must also be globally unique.
+                // Capitalise the initial letter.
+                $updates['name'] = ucfirst($value);
+
+                // The name must also be globally unique.
                 $namelc = strtolower($value);
                 if ($criteriaset = $DB->get_record('assignfeedback_structured_cs', array('name_lc' => $namelc), 'id')) {
                     if ($criteriaset->id != $criteriasetid) {

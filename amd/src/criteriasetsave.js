@@ -80,10 +80,13 @@ define(
          */
         function saveSet(modal, contextId) {
             var modalNode = modal.getRoot(),
-                name = modalNode.find('[name="criteriaset-name"]').val().trim(),
+                nameNode = modalNode.find('[name="criteriaset-name"]'),
+                rawName = nameNode.val().trim(),
                 public = false,
                 spinner = modalNode.find('.loading-icon');
 
+            var name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+            nameNode.val(name);
             if (modalNode.find('[name="criteriaset-publish"]').prop('checked')) {
                 public = true;
             }

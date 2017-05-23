@@ -189,7 +189,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         // Write the new criteria set to the database.
         $criteriaset = new stdClass();
-        $criteriaset->name = $name;
+        $criteriaset->name = ucfirst($name);
         $criteriaset->name_lc = strtolower($name);
         $criteriaset->criteria = implode(',', $critids);
         $criteriaset->owner = $USER->id;
