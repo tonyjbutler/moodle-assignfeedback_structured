@@ -235,7 +235,7 @@ class assignfeedback_structured_external extends external_api {
             );
         }
         // Validate global uniqueness of criteria set name provided.
-        if ($DB->record_exists('assignfeedback_structured_cs', array('name' => $name))) {
+        if ($DB->record_exists('assignfeedback_structured_cs', array('name_lc' => strtolower($name)))) {
             return array(
                 'hide'  => false,
                 'title' => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
@@ -343,7 +343,7 @@ class assignfeedback_structured_external extends external_api {
                     );
                 }
                 // It must also be globally unique.
-                if ($DB->record_exists('assignfeedback_structured_cs', array('name' => $value))) {
+                if ($DB->record_exists('assignfeedback_structured_cs', array('name_lc' => strtolower($value)))) {
                     return array(
                         'success' => false,
                         'title'   => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
