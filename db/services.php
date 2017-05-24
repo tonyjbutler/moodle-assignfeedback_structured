@@ -23,6 +23,8 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 $functions = array(
     'assignfeedback_structured_get_criteria' => array(
         'classname'     => 'assignfeedback_structured_external',

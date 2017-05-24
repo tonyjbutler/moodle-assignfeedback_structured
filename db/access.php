@@ -23,6 +23,8 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 $capabilities = array(
     'assignfeedback/structured:manageowncriteriasets' => array(
         'captype' => 'write',
