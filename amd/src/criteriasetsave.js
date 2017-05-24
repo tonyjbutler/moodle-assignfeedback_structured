@@ -95,7 +95,7 @@ define(
             var criteria = [];
             modalNode.parent().find('[id^="id_assignfeedback_structured_critname"]').each(function() {
                 if ($(this).val().trim().length) {
-                    var descNode = $(this).parent().parent().next().find('[id^="id_assignfeedback_structured_critdesc"]');
+                    var descNode = $(this).parent().parent().next().find('[name^="assignfeedback_structured_critdesc"]');
                     var descText;
                     if (descNode.val()) {
                         descText = descNode.val().trim();
