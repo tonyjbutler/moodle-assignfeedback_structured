@@ -96,9 +96,14 @@ define(
             modalNode.parent().find('[id^="id_assignfeedback_structured_critname"]').each(function() {
                 if ($(this).val().trim().length) {
                     var descNode = $(this).parent().parent().next().find('[name^="assignfeedback_structured_critdesc"]');
+                    if (!descNode.length) {
+                        descNode = $(this).parent().parent().next().find('[data-fieldtype="textarea"]');
+                    }
                     var descText;
                     if (descNode.val()) {
                         descText = descNode.val().trim();
+                    } else if (descNode.text()) {
+                        descText = descNode.text().trim();
                     } else {
                         descText = '';
                     }
