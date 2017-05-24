@@ -31,6 +31,7 @@ $string['criteriaused'] = 'This criteria set cannot be edited because one of mor
 $string['criteriaset'] = 'Criteria set';
 $string['criteriaset_help'] = 'Click this button to select a previously saved criteria set to automatically configure the criteria details below.';
 $string['criteriasetconfirmdelete'] = 'Are you sure you want to permanently delete the criteria set "{$a}"?';
+$string['criteriasetconfirmuse'] = 'Are you sure? This will overwrite the criteria that are currently configured for this assignment.';
 $string['criteriasetname'] = 'Criteria set name';
 $string['criteriasetname_help'] = 'The name of a criteria set must be unique across the whole site, so please choose it carefully.';
 $string['criteriasetnameedit'] = 'Edit criteria set name';

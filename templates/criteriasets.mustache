@@ -388,6 +388,24 @@
             var set = $(this).parent().parent(),
                 spinner = $('#id_assignfeedback_structured_critset').siblings('.loading-icon');
 
+            if ($('[id^="id_assignfeedback_structured_critname"]').val().trim()) {
+                str.get_strings([
+                    {key: 'criteriasetuse', component: 'assignfeedback_structured'},
+                    {key: 'criteriasetconfirmuse', component: 'assignfeedback_structured'},
+                    {key: 'yes'},
+                    {key: 'no'}
+                ]).done(function(s) {
+                    notification.confirm(s[0], s[1], s[2], s[3], function() {
+                        useSet(set, spinner);
+                    });
+                }).fail(notification.exception);
+            } else {
+                useSet(set, spinner);
+            }
+        });
+
+        // Function to use a saved criteria set.
+        function useSet(set, spinner) {
             spinner.show();
             if (!set.children('.criteria-data').children('.assignfeedback_structured_criteria').length) {
                 getCriteria(set).done(function() {
@@ -400,7 +418,7 @@
                     spinner.hide();
                 }).fail(notification.exception);
             }
-        });
+        }
 
         /**
          * Function to process the criteria data for a chosen criteria set and populate the config form fields.
