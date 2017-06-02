@@ -386,20 +386,28 @@
         var useButton = $('[data-set-action="use"]');
         useButton.on('click', function() {
             var set = $(this).parent().parent(),
-                spinner = $('#id_assignfeedback_structured_critset').siblings('.loading-icon');
+                spinner = $('#id_assignfeedback_structured_critset').siblings('.loading-icon'),
+                use = true;
 
-            if ($('[id^="id_assignfeedback_structured_critname"]').val().trim()) {
-                str.get_strings([
-                    {key: 'criteriasetuse', component: 'assignfeedback_structured'},
-                    {key: 'criteriasetconfirmuse', component: 'assignfeedback_structured'},
-                    {key: 'yes'},
-                    {key: 'no'}
-                ]).done(function(s) {
-                    notification.confirm(s[0], s[1], s[2], s[3], function() {
-                        useSet(set, spinner);
-                    });
-                }).fail(notification.exception);
-            } else {
+            // Check each criterion name field for a value.
+            $('[id^="id_assignfeedback_structured_critname"]').each(function() {
+                if ($(this).val().trim()) {
+                    use = false;
+                    str.get_strings([
+                        {key: 'criteriasetuse', component: 'assignfeedback_structured'},
+                        {key: 'criteriasetconfirmuse', component: 'assignfeedback_structured'},
+                        {key: 'yes'},
+                        {key: 'no'}
+                    ]).done(function(s) {
+                        notification.confirm(s[0], s[1], s[2], s[3], function() {
+                            useSet(set, spinner);
+                        });
+                    }).fail(notification.exception);
+                    // Break out of loop.
+                    return false;
+                }
+            });
+            if (use == true) {
                 useSet(set, spinner);
             }
         });
