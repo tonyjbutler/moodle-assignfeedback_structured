@@ -49,6 +49,15 @@ class assign_feedback_structured extends assign_feedback_plugin {
     private $criteria = '';
 
     /**
+     * Get the name of the structured feedback plugin.
+     *
+     * @return string The name of the plugin.
+     */
+    public function get_name() {
+        return get_string('pluginname', 'assignfeedback_structured');
+    }
+
+    /**
      * Cache and return the assignment context for this plugin instance.
      *
      * @return context
@@ -59,36 +68,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         return $this->assignment->get_context();
-    }
-
-    /**
-     * Get the name of the structured feedback plugin.
-     *
-     * @return string The name of the plugin.
-     */
-    public function get_name() {
-        return get_string('pluginname', 'assignfeedback_structured');
-    }
-
-    /**
-     * Get the structured feedback comments from the database.
-     *
-     * @param int $gradeid The grade id.
-     * @return array An array of feedback comments for the given grade, indexed by criterion key.
-     */
-    public function get_feedback_comments($gradeid) {
-        global $DB;
-
-        if (!$comments = $DB->get_records('assignfeedback_structured', array('grade' => $gradeid))) {
-            return array();
-        }
-
-        $feedback = array();
-        foreach ($comments as $comment) {
-            $feedback[$comment->criterion] = $comment;
-        }
-
-        return $feedback;
     }
 
     /**
@@ -106,6 +85,58 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         return $this->criteria;
+    }
+
+    /**
+     * Fetch the saved criteria set with the given id.
+     *
+     * @param int $criteriasetid The id of the criteria set to fetch.
+     * @return stdClass|bool The criteria set or false.
+     */
+    private function get_criteria_set($criteriasetid) {
+        global $DB;
+
+        // A criteria set id must be provided.
+        if (empty($criteriasetid)) {
+            return false;
+        }
+
+        return $DB->get_record('assignfeedback_structured_cs', array('id' => $criteriasetid));
+    }
+
+    /**
+     * Return the criteria for the given criteria set id, or those configured for this assignment instance.
+     *
+     * @param int $criteriasetid The id of a saved criteria set (optional).
+     * @return array The criteria data.
+     */
+    public function get_criteria($criteriasetid = 0) {
+        if (!empty($criteriasetid)) {
+            if (!$criteriaset = $this->get_criteria_set($criteriasetid)) {
+                return array();
+            }
+            $criteria = $criteriaset->criteria;
+        } else {
+            if (!$criteria = $this->get_criteria_config()) {
+                return array();
+            }
+        }
+
+        return json_decode($criteria);
+    }
+
+    /**
+     * Check whether the criterion with the given key has any feedback associated with it.
+     *
+     * @param int $criterion Key of criterion to check.
+     * @return bool True if any feedback exists.
+     */
+    private function is_criterion_used($criterion) {
+        global $DB;
+
+        $assignment = $this->assignment->get_instance()->id;
+
+        return $DB->record_exists('assignfeedback_structured', array('assignment' => $assignment, 'criterion' => $criterion));
     }
 
     /**
@@ -239,106 +270,24 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Fetch the saved criteria set with the given id.
+     * Get the structured feedback comments from the database.
      *
-     * @param int $criteriasetid The id of the criteria set to fetch.
-     * @return stdClass|bool The criteria set or false.
+     * @param int $gradeid The grade id.
+     * @return array An array of feedback comments for the given grade, indexed by criterion key.
      */
-    private function get_criteria_set($criteriasetid) {
+    public function get_feedback_comments($gradeid) {
         global $DB;
 
-        // A criteria set id must be provided.
-        if (empty($criteriasetid)) {
-            return false;
+        if (!$comments = $DB->get_records('assignfeedback_structured', array('grade' => $gradeid))) {
+            return array();
         }
 
-        return $DB->get_record('assignfeedback_structured_cs', array('id' => $criteriasetid));
-    }
-
-    /**
-     * Return the criteria for the given criteria set id, or those configured for this assignment instance.
-     *
-     * @param int $criteriasetid The id of a saved criteria set (optional).
-     * @return array The criteria data.
-     */
-    public function get_criteria($criteriasetid = 0) {
-        if (!empty($criteriasetid)) {
-            if (!$criteriaset = $this->get_criteria_set($criteriasetid)) {
-                return array();
-            }
-            $criteria = $criteriaset->criteria;
-        } else {
-            if (!$criteria = $this->get_criteria_config()) {
-                return array();
-            }
+        $feedback = array();
+        foreach ($comments as $comment) {
+            $feedback[$comment->criterion] = $comment;
         }
 
-        return json_decode($criteria);
-    }
-
-    /**
-     * Get quickgrading form elements as html.
-     *
-     * @param int $userid The user id in the table this quickgrading element relates to.
-     * @param stdClass|null $grade The grade data - may be null if there are no grades for this user (yet).
-     * @return string An html string containing the html form elements required for quickgrading.
-     */
-    public function get_quickgrading_html($userid, $grade) {
-        if (!$criteria = $this->get_criteria()) {
-            return '';
-        }
-
-        if ($grade) {
-            $feedbackcomments = $this->get_feedback_comments($grade->id);
-        }
-
-        $html = '';
-        foreach ($criteria as $key => $criterion) {
-            $critname = $criterion->name;
-            $critdesc = $criterion->description;
-            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
-            $labeloptions = array('for' => 'quickgrade_structured_' . $key . '_' . $userid);
-            $textareaoptions = array(
-                'name'  => 'quickgrade_structured_' . $key . '_' . $userid,
-                'id'    => 'quickgrade_structured_' . $key . '_' . $userid,
-                'title' => $critdesc,
-                'class' => 'quickgrade'
-            );
-            $html .= html_writer::tag('label', $critname, $labeloptions);
-            $html .= html_writer::tag('textarea', $commenttext, $textareaoptions);
-        }
-
-        return $html;
-    }
-
-    /**
-     * Has the plugin quickgrading form element been modified in the current form submission?
-     *
-     * @param int $userid The user id in the table this quickgrading element relates to.
-     * @param stdClass $grade The grade object.
-     * @return bool True if the quickgrading form element has been modified, else false.
-     */
-    public function is_quickgrading_modified($userid, $grade) {
-        if (!$criteria = $this->get_criteria()) {
-            return false;
-        }
-
-        $keys = array_keys($criteria);
-        if ($grade) {
-            $feedbackcomments = $this->get_feedback_comments($grade->id);
-        }
-
-        foreach ($keys as $key) {
-            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
-
-            // Note that this handles the difference between empty and not in the quickgrading form at all (hidden column).
-            $newvalue = optional_param('quickgrade_structured_' . $key . '_' . $userid, false, PARAM_RAW);
-            if ($newvalue !== false && $newvalue != $commenttext) {
-                return true;
-            }
-        }
-
-        return false;
+        return $feedback;
     }
 
     /**
@@ -368,29 +317,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         return false;
-    }
-
-    /**
-     * Check whether the criterion with the given key has any feedback associated with it.
-     *
-     * @param int $criterion Key of criterion to check.
-     * @return bool True if any feedback exists.
-     */
-    private function is_criterion_used($criterion) {
-        global $DB;
-
-        $assignment = $this->assignment->get_instance()->id;
-
-        return $DB->record_exists('assignfeedback_structured', array('assignment' => $assignment, 'criterion' => $criterion));
-    }
-
-    /**
-     * Override to indicate a plugin supports quickgrading.
-     *
-     * @return bool True if the plugin supports quickgrading.
-     */
-    public function supports_quickgrading() {
-        return true;
     }
 
     /**
@@ -466,6 +392,80 @@ class assign_feedback_structured extends assign_feedback_plugin {
                     $feedbackcomment->assignment = $this->assignment->get_instance()->id;
                     return $DB->insert_record('assignfeedback_structured', $feedbackcomment) > 0;
                 }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Override to indicate a plugin supports quickgrading.
+     *
+     * @return bool True if the plugin supports quickgrading.
+     */
+    public function supports_quickgrading() {
+        return true;
+    }
+
+    /**
+     * Get quickgrading form elements as html.
+     *
+     * @param int $userid The user id in the table this quickgrading element relates to.
+     * @param stdClass|null $grade The grade data - may be null if there are no grades for this user (yet).
+     * @return string An html string containing the html form elements required for quickgrading.
+     */
+    public function get_quickgrading_html($userid, $grade) {
+        if (!$criteria = $this->get_criteria()) {
+            return '';
+        }
+
+        if ($grade) {
+            $feedbackcomments = $this->get_feedback_comments($grade->id);
+        }
+
+        $html = '';
+        foreach ($criteria as $key => $criterion) {
+            $critname = $criterion->name;
+            $critdesc = $criterion->description;
+            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
+            $labeloptions = array('for' => 'quickgrade_structured_' . $key . '_' . $userid);
+            $textareaoptions = array(
+                    'name'  => 'quickgrade_structured_' . $key . '_' . $userid,
+                    'id'    => 'quickgrade_structured_' . $key . '_' . $userid,
+                    'title' => $critdesc,
+                    'class' => 'quickgrade'
+            );
+            $html .= html_writer::tag('label', $critname, $labeloptions);
+            $html .= html_writer::tag('textarea', $commenttext, $textareaoptions);
+        }
+
+        return $html;
+    }
+
+    /**
+     * Has the plugin quickgrading form element been modified in the current form submission?
+     *
+     * @param int $userid The user id in the table this quickgrading element relates to.
+     * @param stdClass $grade The grade object.
+     * @return bool True if the quickgrading form element has been modified, else false.
+     */
+    public function is_quickgrading_modified($userid, $grade) {
+        if (!$criteria = $this->get_criteria()) {
+            return false;
+        }
+
+        $keys = array_keys($criteria);
+        if ($grade) {
+            $feedbackcomments = $this->get_feedback_comments($grade->id);
+        }
+
+        foreach ($keys as $key) {
+            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
+
+            // Note that this handles the difference between empty and not in the quickgrading form at all (hidden column).
+            $newvalue = optional_param('quickgrade_structured_' . $key . '_' . $userid, false, PARAM_RAW);
+            if ($newvalue !== false && $newvalue != $commenttext) {
+                return true;
             }
         }
 
