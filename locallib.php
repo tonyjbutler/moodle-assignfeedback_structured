@@ -44,14 +44,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
     private $context = null;
 
     /**
-     * @var \context_course The course context for this plugin instance.
+     * @var string The JSON encoded criteria configured for this plugin instance.
      */
-    private $coursecontext = null;
-
-    /**
-     * @var int The id of the criteria set configured for this plugin instance.
-     */
-    private $criteriasetid = 0;
+    private $criteria = '';
 
     /**
      * Cache and return the assignment context for this plugin instance.
@@ -79,7 +74,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * Get the structured feedback comments from the database.
      *
      * @param int $gradeid The grade id.
-     * @return array An array of feedback comments for the given grade, indexed by criterion id.
+     * @return array An array of feedback comments for the given grade, indexed by criterion key.
      */
     public function get_feedback_comments($gradeid) {
         global $DB;
@@ -97,20 +92,20 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Cache and return the id of the criteria set configured for this plugin instance.
+     * Cache and return the JSON encoded criteria configured for this assignment instance.
      *
-     * @return int The criteria set id.
+     * @return string The configured criteria.
      */
-    private function get_criteria_set_id() {
-        if ($this->criteriasetid) {
-            return $this->criteriasetid;
+    private function get_criteria_config() {
+        if ($this->criteria) {
+            return $this->criteria;
         }
 
-        if ($criteriasetid = $this->get_config('criteriaset')) {
-            $this->criteriasetid = $criteriasetid;
+        if ($criteria = $this->get_config('criteria')) {
+            $this->criteria = $criteria;
         }
 
-        return $this->criteriasetid;
+        return $this->criteria;
     }
 
     /**
@@ -122,10 +117,10 @@ class assign_feedback_structured extends assign_feedback_plugin {
     public function get_criteria_sets_for_user($includepublic = false) {
         global $DB, $USER;
 
-        // Return an error if user is copying, and any criteria are defined and have feedback already.
+        // Return an error if user is copying, and any criteria are configured and have feedback already.
         if ($criteria = $this->get_criteria() and $includepublic) {
-            foreach ($criteria as $criterion) {
-                if ($this->is_criterion_used($criterion->id)) {
+            foreach ($criteria as $key => $criterion) {
+                if ($this->is_criterion_used($key)) {
                     return get_string('criteriaused', 'assignfeedback_structured');
                 }
             }
@@ -173,32 +168,15 @@ class assign_feedback_structured extends assign_feedback_plugin {
             return false;
         }
 
-        // Save criteria and get ids.
-        $critids = array();
-        foreach ($criteria as $criterion) {
-            $crit = new stdClass();
-            $crit->name = $criterion['name'];
-            $crit->description = $criterion['description'];
-            if ($critid = $DB->insert_record('assignfeedback_structured_cr', $crit)) {
-                $critids[] = $critid;
-            }
-        }
-        if (!$critids) {
-            return false;
-        }
-
         // Write the new criteria set to the database.
         $criteriaset = new stdClass();
         $criteriaset->name = ucfirst($name);
         $criteriaset->name_lc = strtolower($name);
-        $criteriaset->criteria = implode(',', $critids);
+        $criteriaset->criteria = json_encode($criteria);
         $criteriaset->owner = $USER->id;
         $criteriaset->public = $public;
-        if (!$DB->insert_record('assignfeedback_structured_cs', $criteriaset)) {
-            return false;
-        }
 
-        return true;
+        return $DB->insert_record('assignfeedback_structured_cs', $criteriaset);
     }
 
     /**
@@ -227,15 +205,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
         foreach ($updates as $key => $value) {
             $criteriaset->$key = $value;
         }
-        if (!$DB->update_record('assignfeedback_structured_cs', $criteriaset)) {
-            return false;
-        }
 
-        return true;
+        return $DB->update_record('assignfeedback_structured_cs', $criteriaset);
     }
 
     /**
-     * Delete the saved criteria set with the given id, provided it isn't used in an assignment.
+     * Delete the saved criteria set with the given id.
      *
      * @param int $criteriasetid The id of the criteria set to be deleted.
      * @return bool Success status.
@@ -245,18 +220,6 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         // A criteria set id must be provided.
         if (empty($criteriasetid)) {
-            return false;
-        }
-
-        // Don't delete the criteria set if it is used in an assignment.
-        $select = "plugin = :type AND subtype = :subtype AND name = :name AND value = :value";
-        $params = array(
-            'type'    => $this->get_type(),
-            'subtype' => $this->get_subtype(),
-            'name'    => 'criteriaset',
-            'value'   => $criteriasetid
-        );
-        if ($DB->record_exists_select('assign_plugin_config', $select, $params)) {
             return false;
         }
 
@@ -272,53 +235,45 @@ class assign_feedback_structured extends assign_feedback_plugin {
             }
         }
 
-        // Delete the criteria set and its criteria.
-        $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriasetid));
-        $criterionids = explode(',', $criteriaset->criteria);
-        $DB->delete_records_list('assignfeedback_structured_cr', 'id', $criterionids);
-
-        return true;
+        return $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriasetid));
     }
 
     /**
-     * Return the criteria set matching the given id, or the set already configured for this plugin instance.
+     * Fetch the saved criteria set with the given id.
      *
-     * @param int $criteriasetid The id of a criteria set to return.
+     * @param int $criteriasetid The id of the criteria set to fetch.
      * @return stdClass|bool The criteria set or false.
      */
-    private function get_criteria_set($criteriasetid = 0) {
+    private function get_criteria_set($criteriasetid) {
         global $DB;
 
-        if (!$criteriasetid) {
-            if (!$criteriasetid = $this->get_criteria_set_id()) {
-                return false;
-            }
+        // A criteria set id must be provided.
+        if (empty($criteriasetid)) {
+            return false;
         }
 
         return $DB->get_record('assignfeedback_structured_cs', array('id' => $criteriasetid));
     }
 
     /**
-     * Return the criteria for the given criteria set id, or those already configured for this plugin instance.
+     * Return the criteria for the given criteria set id, or those configured for this assignment instance.
      *
-     * @param int $criteriasetid The id of a criteria set.
-     * @return array Correctly ordered array of criterion records.
+     * @param int $criteriasetid The id of a saved criteria set (optional).
+     * @return array The criteria data.
      */
     public function get_criteria($criteriasetid = 0) {
-        global $DB;
-
-        if (!$criteriaset = $this->get_criteria_set($criteriasetid)) {
-            return array();
+        if (!empty($criteriasetid)) {
+            if (!$criteriaset = $this->get_criteria_set($criteriasetid)) {
+                return array();
+            }
+            $criteria = $criteriaset->criteria;
+        } else {
+            if (!$criteria = $this->get_criteria_config()) {
+                return array();
+            }
         }
 
-        $criterionids = explode(',', $criteriaset->criteria);
-        list($select, $params) = $DB->get_in_or_equal($criterionids);
-        if (!$criteria = $DB->get_records_select('assignfeedback_structured_cr', 'id ' . $select, $params)) {
-            return array();
-        }
-
-        // Return them in the right order.
-        return array_replace(array_flip($criterionids), $criteria);
+        return json_decode($criteria);
     }
 
     /**
@@ -338,14 +293,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $html = '';
-        foreach ($criteria as $critid => $criterion) {
+        foreach ($criteria as $key => $criterion) {
             $critname = $criterion->name;
             $critdesc = $criterion->description;
-            $commenttext = !empty($feedbackcomments[$critid]) ? $feedbackcomments[$critid]->commenttext : '';
-            $labeloptions = array('for' => 'quickgrade_structured_' . $critid . '_' . $userid);
+            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
+            $labeloptions = array('for' => 'quickgrade_structured_' . $key . '_' . $userid);
             $textareaoptions = array(
-                'name'  => 'quickgrade_structured_' . $critid . '_' . $userid,
-                'id'    => 'quickgrade_structured_' . $critid . '_' . $userid,
+                'name'  => 'quickgrade_structured_' . $key . '_' . $userid,
+                'id'    => 'quickgrade_structured_' . $key . '_' . $userid,
                 'title' => $critdesc,
                 'class' => 'quickgrade'
             );
@@ -364,20 +319,20 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return bool True if the quickgrading form element has been modified, else false.
      */
     public function is_quickgrading_modified($userid, $grade) {
-        if (!$criteriaset = $this->get_criteria_set()) {
+        if (!$criteria = $this->get_criteria()) {
             return false;
         }
 
-        $criterionids = explode(',', $criteriaset->criteria);
+        $keys = array_keys($criteria);
         if ($grade) {
             $feedbackcomments = $this->get_feedback_comments($grade->id);
         }
 
-        foreach ($criterionids as $critid) {
-            $commenttext = !empty($feedbackcomments[$critid]) ? $feedbackcomments[$critid]->commenttext : '';
+        foreach ($keys as $key) {
+            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
 
             // Note that this handles the difference between empty and not in the quickgrading form at all (hidden column).
-            $newvalue = optional_param('quickgrade_structured_' . $critid . '_' . $userid, false, PARAM_RAW);
+            $newvalue = optional_param('quickgrade_structured_' . $key . '_' . $userid, false, PARAM_RAW);
             if ($newvalue !== false && $newvalue != $commenttext) {
                 return true;
             }
@@ -394,19 +349,19 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return bool True if the structured feedback has been modified, else false.
      */
     public function is_feedback_modified(stdClass $grade, stdClass $data) {
-        if (!$criteriaset = $this->get_criteria_set()) {
+        if (!$criteria = $this->get_criteria()) {
             return false;
         }
 
-        $criterionids = explode(',', $criteriaset->criteria);
+        $keys = array_keys($criteria);
         if ($grade) {
             $feedbackcomments = $this->get_feedback_comments($grade->id);
         }
 
-        foreach ($criterionids as $critid) {
-            $commenttext = !empty($feedbackcomments[$critid]) ? $feedbackcomments[$critid]->commenttext : '';
+        foreach ($keys as $key) {
+            $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
 
-            $editor = 'assignfeedbackstructured_editor_' . $critid;
+            $editor = 'assignfeedbackstructured_editor_' . $key;
             if ($commenttext != $data->{$editor}['text']) {
                 return true;
             }
@@ -416,15 +371,17 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Check whether the criterion with the given id has any feedback associated with it.
+     * Check whether the criterion with the given key has any feedback associated with it.
      *
-     * @param $criterionid
+     * @param int $criterion Key of criterion to check.
      * @return bool True if any feedback exists.
      */
-    private function is_criterion_used($criterionid) {
+    private function is_criterion_used($criterion) {
         global $DB;
 
-        return $DB->record_exists('assignfeedback_structured', array('criterion' => $criterionid));
+        $assignment = $this->assignment->get_instance()->id;
+
+        return $DB->record_exists('assignfeedback_structured', array('assignment' => $assignment, 'criterion' => $criterion));
     }
 
     /**
@@ -468,9 +425,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         $feedbackcomments = $this->get_feedback_comments($gradeid);
 
-        foreach ($criteria as $critid => $criterion) {
+        foreach ($criteria as $key => $criterion) {
             if ($name == $criterion->name) {
-                $commenttext = !empty($feedbackcomments[$critid]) ? $feedbackcomments[$critid]->commenttext : '';
+                $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
                 return $commenttext;
             }
         }
@@ -495,14 +452,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         $feedbackcomments = $this->get_feedback_comments($gradeid);
 
-        foreach ($criteria as $critid => $criterion) {
+        foreach ($criteria as $key => $criterion) {
             if ($name == $criterion->name) {
-                if (!empty($feedbackcomments[$critid])) {
-                    $feedbackcomments[$critid]->commenttext = $value;
-                    return $DB->update_record('assignfeedback_structured', $feedbackcomments[$critid]);
+                if (!empty($feedbackcomments[$key])) {
+                    $feedbackcomments[$key]->commenttext = $value;
+                    return $DB->update_record('assignfeedback_structured', $feedbackcomments[$key]);
                 } else {
                     $feedbackcomment = new stdClass();
-                    $feedbackcomment->criterion = $critid;
+                    $feedbackcomment->criterion = $key;
                     $feedbackcomment->commenttext = $value;
                     $feedbackcomment->commentformat = FORMAT_HTML;
                     $feedbackcomment->grade = $gradeid;
@@ -531,18 +488,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         $feedbackcomments = $this->get_feedback_comments($grade->id);
 
-        foreach ($criteria as $critid => $criterion) {
-            $quickgradecomment = optional_param('quickgrade_structured_' . $critid . '_' . $userid, null, PARAM_RAW);
+        foreach ($criteria as $key => $criterion) {
+            $quickgradecomment = optional_param('quickgrade_structured_' . $key . '_' . $userid, null, PARAM_RAW);
             if (!$quickgradecomment) {
                 continue;
             }
 
-            if (!empty($feedbackcomments[$critid])) {
-                $feedbackcomments[$critid]->commenttext = $quickgradecomment;
-                $DB->update_record('assignfeedback_structured', $feedbackcomments[$critid]);
+            if (!empty($feedbackcomments[$key])) {
+                $feedbackcomments[$key]->commenttext = $quickgradecomment;
+                $DB->update_record('assignfeedback_structured', $feedbackcomments[$key]);
             } else {
                 $feedbackcomment = new stdClass();
-                $feedbackcomment->criterion = $critid;
+                $feedbackcomment->criterion = $key;
                 $feedbackcomment->commenttext = $quickgradecomment;
                 $feedbackcomment->commentformat = FORMAT_HTML;
                 $feedbackcomment->grade = $grade->id;
@@ -561,71 +518,30 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return bool True.
      */
     public function save_settings(stdClass $data) {
-        global $DB, $USER;
+        $criteria = array();
 
-        // Update any existing criteria or create new ones.
-        $criteria = $this->get_criteria();
-        $critids = array();
         foreach ($data->assignfeedback_structured_critname as $key => $critname) {
             $critname = trim($critname);
             // Ignore unnamed criteria.
             if (empty($critname)) {
                 continue;
             }
-            $critdesc = trim($data->assignfeedback_structured_critdesc[$key]);
-            if (!empty($criteria) && in_array($data->assignfeedback_structured_critid[$key], array_keys($criteria))) {
-                $critid = $data->assignfeedback_structured_critid[$key];
-                if ($criteria[$critid]->name != $critname || $criteria[$critid]->description != $critdesc) {
-                    $criteria[$critid]->name = $critname;
-                    $criteria[$critid]->description = $critdesc;
-                    $DB->update_record('assignfeedback_structured_cr', $criteria[$critid]);
-                }
-                $critids[] = $critid;
-                unset($criteria[$critid]);
-            } else {
-                $criterion = new stdClass();
-                $criterion->name = $critname;
-                $criterion->description = $critdesc;
-                if ($critid = $DB->insert_record('assignfeedback_structured_cr', $criterion)) {
-                    $critids[] = $critid;
-                }
-            }
+            $criterion = new stdClass();
+            $criterion->name = $critname;
+            $criterion->description = trim($data->assignfeedback_structured_critdesc[$key]);
+            $criteria[] = $criterion;
         }
 
-        // Clean up any remaining (unneeded) criteria records.
         if (!empty($criteria)) {
-            $DB->delete_records_list('assignfeedback_structured_cr', 'id', array_keys($criteria));
-        }
-
-        // Update existing criteria set or create a new one.
-        if (!empty($critids)) {
-            $criteria = implode(',', $critids);
-            if ($criteriaset = $this->get_criteria_set()) {
-                $criteriaset->criteria = $criteria;
-                if ($DB->update_record('assignfeedback_structured_cs', $criteriaset)) {
-                    return true;
-                }
+            // Update the config if criteria have changed.
+            if ($criteria != $this->get_criteria()) {
+                $this->set_config('criteria', json_encode($criteria));
             }
-            $criteriaset = new stdClass();
-            $criteriaset->name = '';
-            $criteriaset->name_lc = '';
-            $criteriaset->criteria = $criteria;
-            $criteriaset->owner = $USER->id;
-            $criteriaset->public = false;
-            if ($criteriaset->id = $DB->insert_record('assignfeedback_structured_cs', $criteriaset)) {
-                $this->set_config('criteriaset', $criteriaset->id);
-            }
-            return true;
+        } else {
+            // If no criteria are configured, unset the config and disable the plugin instance.
+            $this->set_config('criteria', '');
+            $this->disable();
         }
-
-        // Delete criteria set if no longer needed.
-        if ($criteriaset = $this->get_criteria_set()) {
-            $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriaset->id));
-            $this->set_config('criteriaset', 0);
-        }
-
-        // If nothing is configured disable the plugin.
-        $this->disable();
 
         return true;
     }
@@ -657,6 +573,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         } else {
             $mform->updateElementAttr('assignfeedback_structured_critset',
                     array('title' => $criteriasets, 'disabled' => 'disabled'));
+            $criterialocked = true;
         }
 
         $critelements = array();
@@ -664,11 +581,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 get_string('criterionname', 'assignfeedback_structured'), array('size' => '64', 'maxlength' => '255'));
         $critelements[] = $mform->createElement('textarea', 'assignfeedback_structured_critdesc',
                 get_string('criteriondesc', 'assignfeedback_structured'), 'rows="4" cols="64"');
-        $critelements[] = $mform->createElement('hidden', 'assignfeedback_structured_critid', 0);
 
         if ($criteria = $this->get_criteria()) {
             $mform->setExpanded('assignfeedback_structured_criteria', true);
-            $critrepeats = count($criteria) + 2;
+            if (!empty($criterialocked)) {
+                $critrepeats = count($criteria);
+            } else {
+                $critrepeats = count($criteria) + 2;
+            }
         } else {
             $critrepeats = 5;
         }
@@ -677,16 +597,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $critoptions['assignfeedback_structured_critname']['rule'] = array(null, 'maxlength', 255, 'client');
         $critoptions['assignfeedback_structured_critname']['type'] = PARAM_TEXT;
         $critoptions['assignfeedback_structured_critdesc']['type'] = PARAM_TEXT;
-        $critoptions['assignfeedback_structured_critid']['type'] = PARAM_INT;
 
         $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'assignfeedback_structured_repeats',
                 'assignfeedback_structured_critfieldsadd', 3, get_string('criteriafieldsadd', 'assignfeedback_structured'), true);
         $lastfield = 'assignfeedback_structured_critname[' . ($critfields - 1) . ']';
         $mform->disabledIf('assignfeedback_structured_critfieldsadd', $lastfield, 'eq', '');
         $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
+        if (!empty($criterialocked)) {
+            $mform->updateElementAttr('assignfeedback_structured_critfieldsadd', array('disabled' => 'disabled'));
+        }
 
         if (has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)) {
-            // Enable teachers to save criteria sets for use in other assignments.
+            // Enable users to save criteria sets for use in other assignments.
             $criteriasetsavebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsave',
                     get_string('criteriasetsave', 'assignfeedback_structured'));
             $criteriasetsavebutton->setLabel(get_string('criteriasetsave', 'assignfeedback_structured'));
@@ -699,7 +621,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
             );
             $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsave', 'init', $params);
 
-            // Enable teachers to manage their saved criteria sets.
+            // Enable users to manage their saved criteria sets.
             $criteriasetsmanagebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsmanage',
                     get_string('criteriasetsmanage', 'assignfeedback_structured'));
             $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
@@ -724,19 +646,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         // Pre-populate fields with existing data and lock as appropriate.
-        $criteria = array_values($criteria);
-        foreach ($criteria as $index => $criterion) {
-            $mform->setDefault('assignfeedback_structured_critname[' . $index . ']', $criterion->name);
-            $mform->setDefault('assignfeedback_structured_critdesc[' . $index . ']', $criterion->description);
-            $mform->setDefault('assignfeedback_structured_critid[' . $index . ']', $criterion->id);
-            if ($this->is_criterion_used($criterion->id)) {
-                $elements = array(
-                    'assignfeedback_structured_critname[' . $index . ']',
-                    'assignfeedback_structured_critdesc[' . $index . ']'
-                );
-                $mform->freeze($elements);
-                $mform->updateElementAttr($elements, array('title' => get_string('criterionused', 'assignfeedback_structured')));
+        $elements = array();
+        foreach ($criteria as $key => $criterion) {
+            $mform->setDefault('assignfeedback_structured_critname[' . $key . ']', $criterion->name);
+            $mform->setDefault('assignfeedback_structured_critdesc[' . $key . ']', $criterion->description);
+            if (!empty($criterialocked)) {
+                $elements[] = 'assignfeedback_structured_critname[' . $key . ']';
+                $elements[] = 'assignfeedback_structured_critdesc[' . $key . ']';
             }
+        }
+        if (!empty($criterialocked) && !empty($elements)) {
+            $mform->freeze($elements);
+            $mform->updateElementAttr($elements, array('title' => get_string('criteriaused', 'assignfeedback_structured')));
         }
     }
 
@@ -900,11 +821,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $feedbackcomments = $this->get_feedback_comments($grade->id);
         }
 
-        foreach ($criteria as $critid => $criterion) {
-            $editor = 'assignfeedbackstructured_editor_' . $critid;
-            if (!empty($feedbackcomments[$critid]) && !empty($feedbackcomments[$critid]->commenttext)) {
-                $data->{$editor}['text'] = $feedbackcomments[$critid]->commenttext;
-                $data->{$editor}['format'] = $feedbackcomments[$critid]->commentformat;
+        foreach ($criteria as $key => $criterion) {
+            $editor = 'assignfeedbackstructured_editor_' . $key;
+            if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
+                $data->{$editor}['text'] = $feedbackcomments[$key]->commenttext;
+                $data->{$editor}['format'] = $feedbackcomments[$key]->commentformat;
             }
             $mform->addElement('editor', $editor, get_string('criteriontitle', 'assignfeedback_structured',
                     array('name' => $criterion->name, 'desc' => $criterion->description)));
@@ -930,15 +851,15 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         $feedbackcomments = $this->get_feedback_comments($grade->id);
 
-        foreach ($criteria as $critid => $criterion) {
-            $editor = 'assignfeedbackstructured_editor_' . $critid;
-            if (!empty($feedbackcomments[$critid]) && $feedbackcomments[$critid]->commenttext != $data->{$editor}['text']) {
-                $feedbackcomments[$critid]->commenttext = $data->{$editor}['text'];
-                $feedbackcomments[$critid]->commentformat = $data->{$editor}['format'];
-                $DB->update_record('assignfeedback_structured', $feedbackcomments[$critid]);
+        foreach ($criteria as $key => $criterion) {
+            $editor = 'assignfeedbackstructured_editor_' . $key;
+            if (!empty($feedbackcomments[$key]) && $feedbackcomments[$key]->commenttext != $data->{$editor}['text']) {
+                $feedbackcomments[$key]->commenttext = $data->{$editor}['text'];
+                $feedbackcomments[$key]->commentformat = $data->{$editor}['format'];
+                $DB->update_record('assignfeedback_structured', $feedbackcomments[$key]);
             } else if (!empty($data->{$editor}['text'])) {
                 $feedbackcomment = new stdClass();
-                $feedbackcomment->criterion = $critid;
+                $feedbackcomment->criterion = $key;
                 $feedbackcomment->commenttext = $data->{$editor}['text'];
                 $feedbackcomment->commentformat = $data->{$editor}['format'];
                 $feedbackcomment->grade = $grade->id;
@@ -965,12 +886,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $feedbackcomments = $this->get_feedback_comments($grade->id);
 
         $text = '';
-        foreach ($criteria as $critid => $criterion) {
-            if (!empty($feedbackcomments[$critid]) && !empty($feedbackcomments[$critid]->commenttext)) {
+        foreach ($criteria as $key => $criterion) {
+            if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                 $desc = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
                 $crit = get_string('criteriontitle', 'assignfeedback_structured',
                         array('name' => format_string($criterion->name), 'desc' => ''));
-                $comment = format_text($feedbackcomments[$critid]->commenttext, $feedbackcomments[$critid]->commentformat,
+                $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
                         array('context' => $this->get_context()));
                 $text .= html_writer::div($crit, '', array('title' => $desc));
                 $text .= html_writer::div($comment, 'well-small');
@@ -998,12 +919,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $feedbackcomments = $this->get_feedback_comments($grade->id);
 
         $text = '';
-        foreach ($criteria as $critid => $criterion) {
-            if (!empty($feedbackcomments[$critid]) && !empty($feedbackcomments[$critid]->commenttext)) {
+        foreach ($criteria as $key => $criterion) {
+            if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                 $desc = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
                 $crit = get_string('criteriontitle', 'assignfeedback_structured',
                         array('name' => format_string($criterion->name), 'desc' => $desc));
-                $comment = format_text($feedbackcomments[$critid]->commenttext, $feedbackcomments[$critid]->commentformat,
+                $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
                         array('context' => $this->get_context()));
                 $text .= html_writer::div($crit);
                 $text .= html_writer::div($comment, 'well');
@@ -1032,12 +953,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
         if ($feedbackcomments) {
             $formattedtext = html_writer::tag('h2', get_string('pluginname', 'assignfeedback_structured'),
                     array('style' => 'font-family: Arial, sans-serif;'));
-            foreach ($criteria as $critid => $criterion) {
-                if (!empty($feedbackcomments[$critid]) && !empty($feedbackcomments[$critid]->commenttext)) {
-                    $commenttext = $this->assignment->download_rewrite_pluginfile_urls($feedbackcomments[$critid]->commenttext,
+            foreach ($criteria as $key => $criterion) {
+                if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
+                    $commenttext = $this->assignment->download_rewrite_pluginfile_urls($feedbackcomments[$key]->commenttext,
                             $user, $this);
                     $description = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
-                    $comment = format_text($commenttext, $feedbackcomments[$critid]->commentformat,
+                    $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat,
                             array('context' => $this->get_context()));
                     $formattedtext .= html_writer::tag('h3', format_string($criterion->name),
                             array('style' => 'font-family: Arial, sans-serif;'));
@@ -1081,15 +1002,8 @@ class assign_feedback_structured extends assign_feedback_plugin {
     public function delete_instance() {
         global $DB;
 
-        // Delete comments first.
+        // Will throw exception on failure.
         $DB->delete_records('assignfeedback_structured', array('assignment' => $this->assignment->get_instance()->id));
-
-        // Then delete criteria set and criteria.
-        if ($criteriaset = $this->get_criteria_set()) {
-            $DB->delete_records('assignfeedback_structured_cs', array('id' => $criteriaset->id));
-            $criterionids = explode(',', $criteriaset->criteria);
-            $DB->delete_records_list('assignfeedback_structured_cr', 'id', $criterionids);
-        }
 
         return true;
     }
@@ -1133,17 +1047,26 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $editors = array();
-        foreach ($criteria as $critid => $criterion) {
+        foreach ($criteria as $key => $criterion) {
             $editorparams = array(
                 'text' => new external_value(PARAM_RAW, 'The comment text for criterion: ' . $criterion->name),
                 'format' => new external_value(PARAM_INT, 'The comment format for criterion: ' . $criterion->name)
             );
-            $editorstructure = new external_single_structure($editorparams, 'Criterion ' . $critid . ' editor structure',
+            $editorstructure = new external_single_structure($editorparams, 'Criterion ' . $key . ' editor structure',
                     VALUE_OPTIONAL);
-            $editors['assignfeedbackstructured_editor_' . $critid] = $editorstructure;
+            $editors['assignfeedbackstructured_editor_' . $key] = $editorstructure;
         }
 
         return $editors;
+    }
+
+    /**
+     * Return the plugin config for external functions.
+     *
+     * @return array The list of settings.
+     */
+    public function get_config_for_external() {
+        return (array) $this->get_config();
     }
 
 }

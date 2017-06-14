@@ -25,9 +25,9 @@
 
 $string['close'] = 'Close';
 $string['criteria'] = 'Feedback criteria';
-$string['criteria_help'] = 'Enter a name and description for each criterion you want to provide feedback for. Any unnamed criteria will be ignored. Fields will be locked once there is feedback for a particular criterion.';
+$string['criteria_help'] = 'Enter a name and description for each criterion you want to provide feedback for. Any unnamed criteria will be ignored. All fields will be locked once feedback has been given for any criteria.';
 $string['criteriafieldsadd'] = 'Add more criteria fields';
-$string['criteriaused'] = 'This criteria set cannot be edited because one of more of its criteria already have feedback';
+$string['criteriaused'] = 'The criteria for this assignment can no longer be edited because some feedback has already been given.';
 $string['criteriaset'] = 'Criteria set';
 $string['criteriaset_help'] = 'Click this button to select a previously saved criteria set to automatically configure the criteria details below.';
 $string['criteriasetconfirmdelete'] = 'Are you sure you want to permanently delete the criteria set "{$a}"?';
@@ -64,7 +64,6 @@ $string['criteriasetusesaved'] = 'Use a saved criteria set';
 $string['criteriondesc'] = 'Criterion {$a} description';
 $string['criterionname'] = 'Criterion {$a} name';
 $string['criteriontitle'] = '{$a->name}: <span style="font-style: italic;">{$a->desc}</span>';
-$string['criterionused'] = 'This criterion cannot be edited because it already has feedback';
 $string['default'] = 'Enabled by default';
 $string['default_help'] = 'If set, this feedback method will be enabled by default for all new assignments.';
 $string['enabled'] = 'Structured feedback';

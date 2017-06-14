@@ -52,11 +52,11 @@ class assignfeedback_structured_external extends external_api {
     }
 
     /**
-     * Return an ordered array of criteria data for the criteria set with the id provided.
+     * Return an array of criteria data for the criteria set with the id provided.
      *
      * @param int $contextid The context id of the current assignment instance.
      * @param int $criteriasetid The id of a criteria set.
-     * @return array Correctly ordered array of criteria data objects.
+     * @return array The criteria data.
      */
     public static function get_criteria($contextid, $criteriasetid) {
         global $CFG;
@@ -87,7 +87,6 @@ class assignfeedback_structured_external extends external_api {
         return new external_multiple_structure(
             new external_single_structure(
                 array(
-                    'id'          => new external_value(PARAM_INT, 'The criterion ID'),
                     'name'        => new external_value(PARAM_TEXT, 'The criterion name'),
                     'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL)
                 ), 'The data for a single criterion'

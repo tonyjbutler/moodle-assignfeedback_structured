@@ -455,16 +455,12 @@
             if (configData.length > critFields) {
                 var newIndexes = [];
                 for (var i = critFields; i < configData.length; i++) {
-                    // Clone criterion ID hidden field and set its value to 0.
-                    var idField = $('[name="assignfeedback_structured_critid[' + (i - 1) + ']"]');
-                    var name = 'assignfeedback_structured_critid[' + i + ']';
-                    idField.clone().attr({name: name, value: '0'}).insertAfter(idField);
                     newIndexes.push({
                         nodeIndex: i,
                         critIndex: i + 1
                     });
                 }
-                // Use a template to deal with name and description fields.
+                // Use a template to add name and description fields.
                 var context = {
                     lastNodeIndex: critFields - 1,
                     lastCritIndex: critFields,
