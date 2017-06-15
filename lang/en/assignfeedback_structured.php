@@ -25,7 +25,7 @@
 
 $string['close'] = 'Close';
 $string['criteria'] = 'Feedback criteria';
-$string['criteria_help'] = 'Enter a name and description for each criterion you want to provide feedback for. Any unnamed criteria will be ignored. All fields will be locked once feedback has been given for any criteria.';
+$string['criteria_help'] = 'Enter a name (and optionally a description) for each criterion you want to provide feedback on. Any unnamed criteria will be ignored. All fields will be locked once feedback has been given for any criteria.';
 $string['criteriafieldsadd'] = 'Add more criteria fields';
 $string['criteriaused'] = 'The criteria for this assignment can no longer be edited because some feedback has already been given.';
 $string['criteriaset'] = 'Criteria set';
@@ -61,7 +61,7 @@ $string['criteriasetupdated'] = 'Criteria set updated';
 $string['criteriasetupdatedsuccess'] = 'Your criteria set was updated successfully.';
 $string['criteriasetuse'] = 'Use this set';
 $string['criteriasetusesaved'] = 'Use a saved criteria set';
-$string['criteriondesc'] = 'Criterion {$a} description';
+$string['criteriondesc'] = 'Criterion {$a} description (optional)';
 $string['criterionname'] = 'Criterion {$a} name';
 $string['criteriontitle'] = '{$a->name}: <span style="font-style: italic;">{$a->desc}</span>';
 $string['default'] = 'Enabled by default';
