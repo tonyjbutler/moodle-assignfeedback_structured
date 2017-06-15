@@ -436,7 +436,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
                     'class' => 'quickgrade'
             );
             $html .= html_writer::tag('label', $critname, $labeloptions);
+            $html .= html_writer::empty_tag('br');
             $html .= html_writer::tag('textarea', $commenttext, $textareaoptions);
+            $html .= html_writer::empty_tag('br');
         }
 
         return $html;
