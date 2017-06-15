@@ -430,10 +430,10 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
             $labeloptions = array('for' => 'quickgrade_structured_' . $key . '_' . $userid);
             $textareaoptions = array(
-                    'name'  => 'quickgrade_structured_' . $key . '_' . $userid,
-                    'id'    => 'quickgrade_structured_' . $key . '_' . $userid,
-                    'title' => $critdesc,
-                    'class' => 'quickgrade'
+                    'name'        => 'quickgrade_structured_' . $key . '_' . $userid,
+                    'id'          => 'quickgrade_structured_' . $key . '_' . $userid,
+                    'placeholder' => $critdesc,
+                    'class'       => 'quickgrade'
             );
             $html .= html_writer::tag('label', $critname, $labeloptions);
             $html .= html_writer::empty_tag('br');
