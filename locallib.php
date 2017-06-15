@@ -606,7 +606,8 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->disabledIf('assignfeedback_structured_critfieldsadd', $lastfield, 'eq', '');
         $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
         if (!empty($criterialocked)) {
-            $mform->updateElementAttr('assignfeedback_structured_critfieldsadd', array('disabled' => 'disabled'));
+            $mform->updateElementAttr('assignfeedback_structured_critfieldsadd',
+                    array('title' => get_string('criteriaused', 'assignfeedback_structured'), 'disabled' => 'disabled'));
         }
 
         if (has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)) {
