@@ -541,7 +541,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
             }
         } else {
             // If no criteria are configured, unset the config and disable the plugin instance.
-            $this->set_config('criteria', '');
+            if ($this->get_criteria()) {
+                $this->set_config('criteria', '');
+            }
             $this->disable();
         }
 
