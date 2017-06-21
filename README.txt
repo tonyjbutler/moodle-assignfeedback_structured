@@ -36,8 +36,13 @@ Changelog
 ---------
 
 2017-06-14  v3.3.0
-
   * Initial stable release
+
+2017-06-21  v3.3.1
+  * Use placeholder for quickgrading description
+  * Don't empty config if it's already empty
+  * Replace public (reserved in JS) with shared
+  * Address remaining code prechecker issues
 
 
 Installation
