@@ -34,7 +34,7 @@
     * manage Whether a full management interface is required (otherwise it's read only).
     * canPublish Whether the current user can publish criteria sets.
     * ownedSets An array of data objects for all saved criteria sets owned by the current user.
-    * publicSets An array of data objects for any other available criteria sets.
+    * sharedSets An array of data objects for any other available criteria sets.
 
     Example context (json):
     {
@@ -45,15 +45,15 @@
             {
                 "id": 1,
                 "name": "Criteria set 1",
-                "public": true
+                "shared": true
             },
             {
                 "id": 2,
                 "name": "Criteria set 2",
-                "public": false
+                "shared": false
             }
         ],
-        "publicSets": [
+        "sharedSets": [
             {
                 "id": 1,
                 "name": "Criteria set 3"
@@ -95,9 +95,9 @@
                         {{#manage}}
                             {{#canPublish}}
                                 <label>
-                                    <input type="checkbox" name="criteriaset-public" data-set-action="public"
-                                        {{#public}} checked {{/public}}>
-                                    {{#str}} criteriasetpublic, assignfeedback_structured {{/str}}
+                                    <input type="checkbox" name="criteriaset-shared" data-set-action="shared"
+                                        {{#shared}} checked {{/shared}}>
+                                    {{#str}} criteriasetshared, assignfeedback_structured {{/str}}
                                 </label>
                             {{/canPublish}}
                             <button type="button" class="btn btn-primary" data-set-action="delete">
@@ -118,12 +118,12 @@
             {{/ownedSets}}
         </div>
         {{^manage}}
-            <div class="criteriasets-public">
-                <h5>{{#str}} criteriasetspublic, assignfeedback_structured {{/str}}</h5>
-                {{^publicSets}}
-                    {{#str}} nopublicsets, assignfeedback_structured {{/str}}
-                {{/publicSets}}
-                {{#publicSets}}
+            <div class="criteriasets-shared">
+                <h5>{{#str}} criteriasetsshared, assignfeedback_structured {{/str}}</h5>
+                {{^sharedSets}}
+                    {{#str}} nosharedsets, assignfeedback_structured {{/str}}
+                {{/sharedSets}}
+                {{#sharedSets}}
                     <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                         <div class="pull-xs-left">
                             <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
@@ -139,7 +139,7 @@
                         </div>
                         <div class="clearer"></div>
                     </div>
-                {{/publicSets}}
+                {{/sharedSets}}
             </div>
         {{/manage}}
     </div>
@@ -155,22 +155,22 @@
     function($, ajax, notification, str, templates) {
         $('.loading-icon').hide();
 
-        // Set initial display of public criteria sets.
-        var showPublic = $('.criteriasets-footer').find('[data-action="showpublic"]'),
-            publicSets = $('.criteriasets-page').find('.criteriasets-public');
-        togglePublic(showPublic, publicSets);
+        // Set initial display of shared criteria sets.
+        var showShared = $('.criteriasets-footer').find('[data-action="showshared"]'),
+            sharedSets = $('.criteriasets-page').find('.criteriasets-shared');
+        toggleShared(showShared, sharedSets);
 
-        // Toggle display of public sets on checkbox click.
-        showPublic.on('click', function() {
-            togglePublic(showPublic, publicSets);
+        // Toggle display of shared sets on checkbox click.
+        showShared.on('click', function() {
+            toggleShared(showShared, sharedSets);
         });
 
-        // Function to determine display of public sets.
-        function togglePublic(showPublic, publicSets) {
-            if (showPublic.prop('checked')) {
-                publicSets.show();
+        // Function to determine display of shared sets.
+        function toggleShared(showShared, sharedSets) {
+            if (showShared.prop('checked')) {
+                sharedSets.show();
             } else {
-                publicSets.hide();
+                sharedSets.hide();
             }
         }
 
@@ -297,10 +297,10 @@
         });
 
         // Change shared visibility of a criteria set.
-        $('[data-set-action="public"]').on('change', function() {
+        $('[data-set-action="shared"]').on('change', function() {
             var set = $(this).parent().parent().parent(),
                 updates = {
-                    public: $(this).prop('checked')
+                    shared: $(this).prop('checked')
                 },
                 spinner = $(this).parent().siblings('.loading-icon');
 

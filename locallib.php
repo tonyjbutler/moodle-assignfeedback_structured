@@ -142,14 +142,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
     /**
      * Return all saved criteria sets that the current user can manage (or copy into this assignment instance).
      *
-     * @param bool $includepublic Include shared criteria sets owned by other users (for copying only).
+     * @param bool $includeshared Include shared criteria sets owned by other users (for copying only).
      * @return array|string Grouped array of criteria sets, or an error string.
      */
-    public function get_criteria_sets_for_user($includepublic = false) {
+    public function get_criteria_sets_for_user($includeshared = false) {
         global $DB, $USER;
 
         // Return an error if user is copying, and any criteria are configured and have feedback already.
-        if ($criteria = $this->get_criteria() and $includepublic) {
+        if ($criteria = $this->get_criteria() and $includeshared) {
             foreach ($criteria as $key => $criterion) {
                 if ($this->is_criterion_used($key)) {
                     return get_string('criteriaused', 'assignfeedback_structured');
@@ -161,22 +161,22 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $params = array('user' => $USER->id);
 
         $select = "name <> ''";
-        if (!has_capability('moodle/site:config', context_system::instance()) || $includepublic) {
+        if (!has_capability('moodle/site:config', context_system::instance()) || $includeshared) {
             $select .= " AND owner = :user";
         }
-        $ownedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name, public');
+        $ownedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name, shared');
         if ($ownedsets) {
             foreach ($ownedsets as $ownedset) {
-                $ownedset->public = (bool) $ownedset->public;
+                $ownedset->shared = (bool) $ownedset->shared;
             }
             $criteriasets['ownedsets'] = array_values($ownedsets);
         }
 
-        if ($includepublic) {
-            $select = "name <> '' AND owner <> :user AND public = 1";
-            $publicsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
-            if ($publicsets) {
-                $criteriasets['publicsets'] = array_values($publicsets);
+        if ($includeshared) {
+            $select = "name <> '' AND owner <> :user AND shared = 1";
+            $sharedsets = $DB->get_records_select('assignfeedback_structured_cs', $select, $params, 'name', 'id, name');
+            if ($sharedsets) {
+                $criteriasets['sharedsets'] = array_values($sharedsets);
             }
         }
 
@@ -188,10 +188,10 @@ class assign_feedback_structured extends assign_feedback_plugin {
      *
      * @param string $name A name for the new criteria set.
      * @param array $criteria The criteria data.
-     * @param bool $public Whether the new criteria set should be shared.
+     * @param bool $shared Whether the new criteria set should be shared.
      * @return bool Success status.
      */
-    public function save_criteria_set($name, $criteria, $public) {
+    public function save_criteria_set($name, $criteria, $shared) {
         global $DB, $PAGE, $USER;
 
         // Make sure user has the appropriate permissions to save.
@@ -205,7 +205,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $criteriaset->name_lc = strtolower($name);
         $criteriaset->criteria = json_encode($criteria);
         $criteriaset->owner = $USER->id;
-        $criteriaset->public = $public;
+        $criteriaset->shared = $shared;
 
         return $DB->insert_record('assignfeedback_structured_cs', $criteriaset);
     }

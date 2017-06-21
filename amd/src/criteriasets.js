@@ -45,9 +45,9 @@ define(
              * @param {boolean} manage Whether a full management interface is required (otherwise it's read only).
              * @param {boolean} canPublish Whether the current user can publish criteria sets.
              * @param {object[]} ownedSets An array of data objects for all saved criteria sets owned by the current user.
-             * @param {object[]} publicSets An array of data objects for any other available criteria sets.
+             * @param {object[]} sharedSets An array of data objects for any other available criteria sets.
              */
-            init: function(contextId, manage, canPublish, ownedSets, publicSets) {
+            init: function(contextId, manage, canPublish, ownedSets, sharedSets) {
                 str.get_strings([
                     {key: 'criteriasetssaved', component: 'assignfeedback_structured'},
                     {key: 'criteriasetsmanage', component: 'assignfeedback_structured'}
@@ -57,7 +57,7 @@ define(
                         manage: manage,
                         canPublish: canPublish,
                         ownedSets: ownedSets,
-                        publicSets: publicSets
+                        sharedSets: sharedSets
                     };
                     var footerContext = {
                         manage: manage
@@ -121,7 +121,7 @@ define(
                 methodname: 'assignfeedback_structured_get_criteriasets',
                 args: {
                     contextid: contextId,
-                    includepublic: !manage
+                    includeshared: !manage
                 }
             }]);
 
@@ -131,7 +131,7 @@ define(
                     manage: manage,
                     canPublish: canPublish,
                     ownedSets: response.ownedsets,
-                    publicSets: response.publicsets
+                    sharedSets: response.sharedsets
                 };
                 templates.render('assignfeedback_structured/criteriasets', context).done(function(html, js) {
                     templates.replaceNodeContents(modalBody, html, js);

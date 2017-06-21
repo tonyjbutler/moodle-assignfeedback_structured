@@ -103,7 +103,7 @@ class assignfeedback_structured_external extends external_api {
         return new external_function_parameters(
             array(
                 'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
-                'includepublic' => new external_value(PARAM_BOOL, 'Whether to include shared criteria sets owned by other users')
+                'includeshared' => new external_value(PARAM_BOOL, 'Whether to include shared criteria sets owned by other users')
             )
         );
     }
@@ -112,11 +112,11 @@ class assignfeedback_structured_external extends external_api {
      * Return all saved criteria sets that the current user can manage (or copy into this assignment instance).
      *
      * @param int $contextid The context id of the current assignment instance.
-     * @param bool $includepublic Include shared criteria sets owned by other users (for copying only).
+     * @param bool $includeshared Include shared criteria sets owned by other users (for copying only).
      * @return array Grouped array of criteria sets.
      * @throws moodle_exception
      */
-    public static function get_criteriasets($contextid, $includepublic) {
+    public static function get_criteriasets($contextid, $includeshared) {
         global $CFG;
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
@@ -124,19 +124,19 @@ class assignfeedback_structured_external extends external_api {
 
         $parameters = array(
             'contextid'     => $contextid,
-            'includepublic' => $includepublic
+            'includeshared' => $includeshared
         );
         self::validate_parameters(self::get_criteriasets_parameters(), $parameters);
         $context = self::get_context_from_params(array('contextid' => $contextid));
         self::validate_context($context);
-        if (!$includepublic && !has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
+        if (!$includeshared && !has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
             throw new moodle_exception('nopermissionstomanage', 'assignfeedback_structured');
         }
 
         $assignment = new assign($context, null, null);
         $feedback = new assign_feedback_structured($assignment, 'structured');
 
-        if (!is_array($criteriasets = $feedback->get_criteria_sets_for_user($includepublic))) {
+        if (!is_array($criteriasets = $feedback->get_criteria_sets_for_user($includeshared))) {
             return array();
         }
 
@@ -156,11 +156,11 @@ class assignfeedback_structured_external extends external_api {
                         array(
                             'id'     => new external_value(PARAM_TEXT, 'The criteria set ID'),
                             'name'   => new external_value(PARAM_RAW, 'The criteria set name'),
-                            'public' => new external_value(PARAM_BOOL, 'Whether the criteria set is shared')
+                            'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set is shared')
                         ), 'The data for a single owned criteria set'
                     ), 'The data for any owned criteria sets', VALUE_OPTIONAL
                 ),
-                'publicsets' => new external_multiple_structure(
+                'sharedsets' => new external_multiple_structure(
                     new external_single_structure(
                         array(
                             'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),
@@ -190,7 +190,7 @@ class assignfeedback_structured_external extends external_api {
                         ), 'The data for a single criterion'
                     ), 'The criteria data'
                 ),
-                'public'    => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared')
+                'shared'    => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared')
             )
         );
     }
@@ -201,11 +201,11 @@ class assignfeedback_structured_external extends external_api {
      * @param int $contextid The context id of the current assignment instance.
      * @param string $name A name for the new criteria set.
      * @param array $criteria The criteria data.
-     * @param bool $public Whether the new criteria set should be shared.
+     * @param bool $shared Whether the new criteria set should be shared.
      * @return array Details of a message to be displayed to the user.
      * @throws moodle_exception
      */
-    public static function save_criteriaset($contextid, $name, $criteria, $public) {
+    public static function save_criteriaset($contextid, $name, $criteria, $shared) {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
@@ -215,7 +215,7 @@ class assignfeedback_structured_external extends external_api {
             'contextid' => $contextid,
             'name'      => $name,
             'criteria'  => $criteria,
-            'public'    => $public
+            'shared'    => $shared
         );
         self::validate_parameters(self::save_criteriaset_parameters(), $parameters);
         $context = self::get_context_from_params(array('contextid' => $contextid));
@@ -246,7 +246,7 @@ class assignfeedback_structured_external extends external_api {
         $assignment = new assign($context, null, null);
         $feedback = new assign_feedback_structured($assignment, 'structured');
 
-        if ($feedback->save_criteria_set($name, $criteria, $public)) {
+        if ($feedback->save_criteria_set($name, $criteria, $shared)) {
             return array(
                 'hide'  => true,
                 'title' => get_string('criteriasetsaved', 'assignfeedback_structured'),
@@ -292,7 +292,7 @@ class assignfeedback_structured_external extends external_api {
                 'updates'       => new external_single_structure(
                     array(
                         'name'   => new external_value(PARAM_TEXT, 'The new name for the criteria set', VALUE_OPTIONAL),
-                        'public' => new external_value(PARAM_BOOL, 'Whether the criteria set should be shared', VALUE_OPTIONAL)
+                        'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set should be shared', VALUE_OPTIONAL)
                     ), 'The key/value pairs of attributes to be updated'
                 )
             )
@@ -326,7 +326,7 @@ class assignfeedback_structured_external extends external_api {
             throw new moodle_exception('nopermissionstoupdate', 'assignfeedback_structured');
         }
         foreach ($updates as $key => $value) {
-            if ($key == 'public' && $value == true && !has_capability('assignfeedback/structured:publishcriteriasets', $context)) {
+            if ($key == 'shared' && $value == true && !has_capability('assignfeedback/structured:publishcriteriasets', $context)) {
                 throw new moodle_exception('nopermissionstopublish', 'assignfeedback_structured');
             }
 
