@@ -20,7 +20,8 @@
     font-style: italic;
 }
 
-.criteriasets-page label, .criteriasets-footer label {
+.criteriasets-page label,
+.criteriasets-footer label {
     display: inline;
     margin-right: 6px;
 }

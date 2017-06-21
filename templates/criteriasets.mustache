@@ -165,7 +165,12 @@
             toggleShared(showShared, sharedSets);
         });
 
-        // Function to determine display of shared sets.
+        /**
+         * Function to determine and set the preferred display of shared criteria sets.
+         *
+         * @param {boolean} showShared Whether or not to show shared sets.
+         * @param {object} sharedSets The node containing the shared sets.
+         */
         function toggleShared(showShared, sharedSets) {
             if (showShared.prop('checked')) {
                 sharedSets.show();
@@ -272,7 +277,7 @@
                         };
                         spinner.show();
                         updateCriteriaSet(set, updates).done(function(response) {
-                            if (response['success'] === true) {
+                            if (response.success === true) {
                                 nameInput.hide();
                                 setName = newName;
                                 set.data('criteriaset-name', newName);
@@ -280,7 +285,7 @@
                                 nameElement.show();
                                 editButton.show();
                             } else {
-                                notification.alert(response['title'], response['body'], response['label']);
+                                notification.alert(response.title, response.body, response.label);
                                 nameInput.hide();
                                 nameElement.show();
                                 editButton.show();
@@ -412,7 +417,12 @@
             }
         });
 
-        // Function to use a saved criteria set.
+        /**
+         * Function to configure the current assignment to use the selected saved criteria set.
+         *
+         * @param {object} set The node containing the details of the criteria set to be used.
+         * @param {object} spinner The node of a javascript loading icon.
+         */
         function useSet(set, spinner) {
             spinner.show();
             if (!set.children('.criteria-data').children('.assignfeedback_structured_criteria').length) {
@@ -444,8 +454,8 @@
                 var name = $(this).data('criterion-name'),
                     desc = $(this).data('criterion-desc');
                 configData.push({
-                    assignfeedback_structured_critname: name,
-                    assignfeedback_structured_critdesc: desc
+                    name: name,
+                    desc: desc
                 });
             });
 
@@ -497,11 +507,13 @@
             // Unfreeze 'save criteria set' checkbox.
             $('#id_assignfeedback_structured_critsetsave').prop('disabled', false);
 
-            // Function to populate fields for each criterion from config data.
+            /**
+             * Function to populate fields for each criterion from config data.
+             */
             function populateFields() {
                 $.each(configData, function(index, criterion) {
                     $.each(criterion, function(fieldName, value) {
-                        var field = '#id_' + fieldName + '_' + index;
+                        var field = '#id_assignfeedback_structured_crit' + fieldName + '_' + index;
                         $(field).val(value);
                     });
                 });
