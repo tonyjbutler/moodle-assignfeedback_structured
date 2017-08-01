@@ -1,3 +1,7 @@
+.criterion-desc {
+    font-style: italic;
+}
+
 .criteriasets-page .criteriaset-row {
     padding: 3px 0;
 }
@@ -14,10 +18,6 @@
 
 .criteriasets-page .criteriaset-row .criteria-data {
     clear: left;
-}
-
-.criteriasets-page .criteriaset-row .criteria-data .criteria-list .criterion-desc {
-    font-style: italic;
 }
 
 .criteriasets-page label,

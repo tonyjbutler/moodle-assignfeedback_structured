@@ -63,7 +63,7 @@ $string['criteriasetuse'] = 'Use this set';
 $string['criteriasetusesaved'] = 'Use a saved criteria set';
 $string['criteriondesc'] = 'Criterion {$a} description (optional)';
 $string['criterionname'] = 'Criterion {$a} name';
-$string['criteriontitle'] = '{$a->name}: <span style="font-style: italic;">{$a->desc}</span>';
+$string['criteriontitle'] = '<span class="criterion-name">{$a->name}:</span> <span class="criterion-desc">{$a->desc}</span>';
 $string['default'] = 'Enabled by default';
 $string['default_help'] = 'If set, this feedback method will be enabled by default for all new assignments.';
 $string['enabled'] = 'Structured feedback';
