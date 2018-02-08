@@ -1042,6 +1042,19 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
+     * Should the structured feedback plugin include a column in the grading table or a row on the summary page?
+     *
+     * @return bool True if any criteria are defined.
+     */
+    public function has_user_summary() {
+        if (empty($this->get_criteria())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Return a description of external params suitable for uploading structured feedback from a webservice.
      *
      * @return array Description of external params.
