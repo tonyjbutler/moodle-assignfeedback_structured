@@ -35,14 +35,19 @@ the same Moodle site.
 Changelog
 ---------
 
-2017-06-14  v3.3.0
-  * Initial stable release
+2018-09-28  v3.5.0
+  * Enable criteria details to be styled easily
+  * Hide user summary if no criteria are defined
+  * Add privacy provider for GDPR support
 
 2017-06-21  v3.3.1
   * Use placeholder for quickgrading description
   * Don't empty config if it's already empty
   * Replace public (reserved in JS) with shared
   * Address remaining code prechecker issues
+
+2017-06-14  v3.3.0
+  * Initial stable release
 
 
 Installation
@@ -52,14 +57,14 @@ Installing from the Git repository (recommended if you installed Moodle
 from Git):
 
 Follow the instructions at
-http://docs.moodle.org/33/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
-e.g. for the Moodle 3.3.x code:
+http://docs.moodle.org/35/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
+e.g. for the Moodle 3.5.x code:
 
 $ cd /path/to/your/moodle/
 $ cd mod/assign/feedback/
 $ git clone https://github.com/lucisgit/moodle-assignfeedback_structured.git structured
 $ cd structured/
-$ git checkout -b MOODLE_33_STABLE origin/MOODLE_33_STABLE
+$ git checkout -b MOODLE_35_STABLE origin/MOODLE_35_STABLE
 $ git branch -d master
 $ cd /path/to/your/moodle/
 $ echo /mod/assign/feedback/structured/ >> .git/info/exclude
@@ -84,7 +89,7 @@ Updating Moodle
 
 If you installed Moodle and the Structured feedback plugin from Git you
 can run the following commands to update both (see
-http://docs.moodle.org/33/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
+http://docs.moodle.org/35/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
 
 $ cd /path/to/your/moodle/
 $ git pull
