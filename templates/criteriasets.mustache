@@ -77,8 +77,9 @@
             {{/ownedSets}}
             {{#ownedSets}}
                 <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
-                    <div class="pull-xs-left">
-                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
+                    <div class="float-left">
+                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
                         {{#manage}}
                             <input type="text" name="criteriaset-newname" size="32" maxlength="64"
                                    title="{{#str}} escapetocancel, assignfeedback_structured {{/str}}">
@@ -90,7 +91,7 @@
                             {{> core/loading }}
                         {{/manage}}
                     </div>
-                    <div class="pull-xs-right">
+                    <div class="float-right">
                         {{> core/loading }}
                         {{#manage}}
                             {{#canPublish}}
@@ -105,7 +106,7 @@
                             </button>
                         {{/manage}}
                         {{^manage}}
-                            <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
+                            <button type="button" class="btn btn-primary" data-set-action="use">
                                 {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
                             </button>
                         {{/manage}}
@@ -125,12 +126,13 @@
                 {{/sharedSets}}
                 {{#sharedSets}}
                     <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
-                        <div class="pull-xs-left">
-                            <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse">{{name}}</a>
+                        <div class="float-left">
+                            <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse" role="button"
+                               aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
                         </div>
-                        <div class="pull-xs-right">
+                        <div class="float-right">
                             {{> core/loading }}
-                            <button type="button" class="btn btn-primary" data-set-action="use" data-action="hide">
+                            <button type="button" class="btn btn-primary" data-set-action="use">
                                 {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
                             </button>
                         </div>
@@ -191,6 +193,14 @@
             }
         });
 
+        // Also trigger toggle if spacebar is pressed (for accessibility).
+        criteriaToggle.on('keydown', function(e) {
+            if (e.keyCode == 32) {
+                e.preventDefault();
+                $(this).trigger('click');
+            }
+        });
+
         /**
          * Function to call a web service method via AJAX to fetch the criteria data for the given set.
          *
@@ -236,69 +246,71 @@
 
         // Edit criteria set name on button click.
         $('[name="criteriaset-newname"]').hide();
-        $('[data-set-action="editname"]').on('click', function(e) {
-            e.preventDefault();
-            var set = $(this).parent().parent(),
-                setName = set.data('criteriaset-name'),
-                editButton = $(this),
-                nameElement = $(this).siblings('[data-toggle="collapse"]'),
-                nameInput = $(this).siblings('[name="criteriaset-newname"]');
+        $('[data-set-action="editname"]').on('click keydown', function(e) {
+            if (e.type == 'click' || e.keyCode == 32) {
+                e.preventDefault();
+                var set = $(this).parent().parent(),
+                    setName = set.data('criteriaset-name'),
+                    editButton = $(this),
+                    nameElement = $(this).siblings('[data-toggle="collapse"]'),
+                    nameInput = $(this).siblings('[name="criteriaset-newname"]');
 
-            // Hide name and button and show input field.
-            editButton.hide();
-            nameElement.hide();
-            nameInput.val(setName);
-            nameInput.show();
-            nameInput.focus();
-            nameInput.select();
+                // Hide name and button and show input field.
+                editButton.hide();
+                nameElement.hide();
+                nameInput.val(setName);
+                nameInput.show();
+                nameInput.focus();
+                nameInput.select();
 
-            // On blur, hide input field and set the new name (if changed).
-            nameInput.off().on('blur keydown', function(e) {
-                var rawName = nameInput.val().trim(),
-                    spinner = nameInput.siblings('.loading-icon');
+                // On blur, hide input field and set the new name (if changed).
+                nameInput.off().on('blur keydown', function(e) {
+                    var rawName = nameInput.val().trim(),
+                        spinner = nameInput.siblings('.loading-icon');
 
-                // Prevent multiple blur triggers with key presses.
-                if (e.type == 'keydown' && (e.keyCode == 13 || e.keyCode == 27)) {
-                    nameInput.off('blur');
-                }
-                if (e.keyCode == 27) {
-                    // Cancel on escape.
-                    e.stopPropagation();
-                    nameInput.hide();
-                    nameElement.show();
-                    editButton.show();
-                } else if (e.type == 'blur' || e.keyCode == 13) {
-                    // Save on enter (or any other loss of focus).
-                    var newName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-                    nameInput.val(newName);
-                    if (newName && newName != setName) {
-                        var updates = {
-                            name: newName
-                        };
-                        spinner.show();
-                        updateCriteriaSet(set, updates).done(function(response) {
-                            if (response.success === true) {
-                                nameInput.hide();
-                                setName = newName;
-                                set.data('criteriaset-name', newName);
-                                nameElement.text(newName);
-                                nameElement.show();
-                                editButton.show();
-                            } else {
-                                notification.alert(response.title, response.body, response.label);
-                                nameInput.hide();
-                                nameElement.show();
-                                editButton.show();
-                            }
-                            spinner.hide();
-                        }).fail(notification.exception);
-                    } else {
+                    // Prevent multiple blur triggers with key presses.
+                    if (e.type == 'keydown' && (e.keyCode == 13 || e.keyCode == 27)) {
+                        nameInput.off('blur');
+                    }
+                    if (e.keyCode == 27) {
+                        // Cancel on escape.
+                        e.stopPropagation();
                         nameInput.hide();
                         nameElement.show();
                         editButton.show();
+                    } else if (e.type == 'blur' || e.keyCode == 13) {
+                        // Save on enter (or any other loss of focus).
+                        var newName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                        nameInput.val(newName);
+                        if (newName && newName != setName) {
+                            var updates = {
+                                name: newName
+                            };
+                            spinner.show();
+                            updateCriteriaSet(set, updates).done(function(response) {
+                                if (response.success === true) {
+                                    nameInput.hide();
+                                    setName = newName;
+                                    set.data('criteriaset-name', newName);
+                                    nameElement.text(newName);
+                                    nameElement.show();
+                                    editButton.show();
+                                } else {
+                                    notification.alert(response.title, response.body, response.label);
+                                    nameInput.hide();
+                                    nameElement.show();
+                                    editButton.show();
+                                }
+                                spinner.hide();
+                            }).fail(notification.exception);
+                        } else {
+                            nameInput.hide();
+                            nameElement.show();
+                            editButton.show();
+                        }
                     }
-                }
-            });
+                });
+            }
         });
 
         // Change shared visibility of a criteria set.
@@ -415,6 +427,7 @@
             if (use == true) {
                 useSet(set, spinner);
             }
+            useButton.attr('data-action', 'hide');
         });
 
         /**
@@ -477,12 +490,12 @@
                     newIndexes: newIndexes
                 };
                 var lastFieldId = 'id_assignfeedback_structured_critdesc_' + (critFields - 1);
-                var lastNode = $('#fitem_' + lastFieldId);
-                var templateName = 'assignfeedback_structured/criterianodes';
-                // Deal with missing form element IDs in Boost.
+                var lastNode = $('#fitem_' + lastFieldId + '[class^="form-group"]');
+                var templateName = 'assignfeedback_structured/criterianodes_boost';
+                // Use a different template for Clean-based themes.
                 if (!lastNode.length) {
-                    lastNode = $('#' + lastFieldId).parent().parent();
-                    templateName = 'assignfeedback_structured/criterianodes_boost';
+                    lastNode = $('#fitem_' + lastFieldId);
+                    templateName = 'assignfeedback_structured/criterianodes';
                 }
                 templates.render(templateName, context).done(function(html, js) {
                     templates.replaceNode(lastNode, html, js);
