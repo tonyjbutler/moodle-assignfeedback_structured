@@ -932,7 +932,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
                         array('context' => $this->get_context()));
                 $text .= html_writer::div($crit);
-                $text .= html_writer::div($comment, 'well');
+                $text .= html_writer::div($comment, 'card p-1');
             }
         }
 
@@ -1052,6 +1052,28 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         return true;
+    }
+
+    /**
+     * If this plugin adds to the gradebook comments field, it must specify the format of the text of the comment.
+     * Only one feedback plugin can push comments to the gradebook and that is chosen by the assignment settings page.
+     *
+     * @param stdClass $grade The grade
+     * @return int
+     */
+    public function format_for_gradebook(stdClass $grade) {
+        return FORMAT_HTML;
+    }
+
+    /**
+     * If this plugin adds to the gradebook comments field, it must format the text of the comment.
+     * Only one feedback plugin can push comments to the gradebook and that is chosen by the assignment settings page.
+     *
+     * @param stdClass $grade The grade
+     * @return string
+     */
+    public function text_for_gradebook(stdClass $grade) {
+        return $this->view($grade);
     }
 
     /**
