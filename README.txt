@@ -35,6 +35,10 @@ the same Moodle site.
 Changelog
 ---------
 
+2019-06-11  v3.5.1
+  * Bootstrap updates + accessibility adjustments
+  * Add support for pushing feedback to gradebook
+
 2018-09-28  v3.5.0
   * Enable criteria details to be styled easily
   * Hide user summary if no criteria are defined
