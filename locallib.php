@@ -25,8 +25,11 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+// File component for structured feedback.
+define('ASSIGNFEEDBACK_STRUCTURED_COMPONENT', 'assignfeedback_structured');
+
 // File area for structured feedback.
-define('ASSIGNFEEDBACK_STRUCTURED_FILEAREA', 'feedback_structured');
+define('ASSIGNFEEDBACK_STRUCTURED_FILEAREA', 'feedback');
 
 /**
  * Library class for structured feedback plugin extending feedback plugin base class.
@@ -310,8 +313,16 @@ class assign_feedback_structured extends assign_feedback_plugin {
         foreach ($keys as $key) {
             $commenttext = !empty($feedbackcomments[$key]) ? $feedbackcomments[$key]->commenttext : '';
 
-            $editor = 'assignfeedbackstructured_editor_' . $key;
-            if ($commenttext != $data->{$editor}['text']) {
+            $editor = 'assignfeedbackstructured' . $key . '_editor';
+            $formtext = $data->{$editor}['text'];
+
+            // Need to convert the form text to use @@PLUGINFILE@@ and format it so we can compare it with what is stored in the DB.
+            if (isset($data->{$editor}['itemid'])) {
+                $formtext = file_rewrite_urls_to_pluginfile($formtext, $data->{$editor}['itemid']);
+                $formtext = format_text($formtext, FORMAT_HTML);
+            }
+
+            if ($commenttext != $formtext) {
                 return true;
             }
         }
@@ -827,14 +838,26 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         foreach ($criteria as $key => $criterion) {
-            $editor = 'assignfeedbackstructured_editor_' . $key;
+            $field = 'assignfeedbackstructured' . $key;
             if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
-                $data->{$editor}['text'] = $feedbackcomments[$key]->commenttext;
-                $data->{$editor}['format'] = $feedbackcomments[$key]->commentformat;
+                $data->{$field} = $feedbackcomments[$key]->commenttext;
+                $data->{$field . 'format'} = $feedbackcomments[$key]->commentformat;
+            } else { // Set it to empty.
+                $data->{$field} = '';
+                $data->{$field . 'format'} = FORMAT_HTML;
             }
-            $mform->addElement('editor', $editor, get_string('criteriontitle', 'assignfeedback_structured',
-                    array('name' => $criterion->name, 'desc' => $criterion->description)));
-            $mform->setType($editor, PARAM_RAW);
+            file_prepare_standard_editor(
+                $data,
+                $field,
+                $this->get_editor_options(),
+                $this->get_context(),
+                ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+                ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+                $grade->id
+            );
+            $editorlabel = get_string('criteriontitle', 'assignfeedback_structured',
+                    ['name' => $criterion->name, 'desc' => $criterion->description]);
+            $mform->addElement('editor', $field . '_editor', $editorlabel, null, $this->get_editor_options());
         }
 
         return true;
@@ -857,16 +880,25 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $feedbackcomments = $this->get_feedback_comments($grade->id);
 
         foreach ($criteria as $key => $criterion) {
-            $editor = 'assignfeedbackstructured_editor_' . $key;
-            if (!empty($feedbackcomments[$key]) && $feedbackcomments[$key]->commenttext != $data->{$editor}['text']) {
-                $feedbackcomments[$key]->commenttext = $data->{$editor}['text'];
-                $feedbackcomments[$key]->commentformat = $data->{$editor}['format'];
+            $field = 'assignfeedbackstructured' . $key;
+            $data = file_postupdate_standard_editor(
+                $data,
+                $field,
+                $this->get_editor_options(),
+                $this->get_context(),
+                ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+                ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+                $grade->id
+            );
+            if (!empty($feedbackcomments[$key]) && $feedbackcomments[$key]->commenttext != $data->{$field}) {
+                $feedbackcomments[$key]->commenttext = $data->{$field};
+                $feedbackcomments[$key]->commentformat = $data->{$field . 'format'};
                 $DB->update_record('assignfeedback_structured', $feedbackcomments[$key]);
-            } else if (!empty($data->{$editor}['text'])) {
+            } else if (!empty($data->{$field})) {
                 $feedbackcomment = new stdClass();
                 $feedbackcomment->criterion = $key;
-                $feedbackcomment->commenttext = $data->{$editor}['text'];
-                $feedbackcomment->commentformat = $data->{$editor}['format'];
+                $feedbackcomment->commenttext = $data->{$field};
+                $feedbackcomment->commentformat = $data->{$field . 'format'};
                 $feedbackcomment->grade = $grade->id;
                 $feedbackcomment->assignment = $this->assignment->get_instance()->id;
                 $DB->insert_record('assignfeedback_structured', $feedbackcomment);
@@ -893,18 +925,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $text = '';
         foreach ($criteria as $key => $criterion) {
             if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
-                $desc = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
+                $desc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
                 $crit = get_string('criteriontitle', 'assignfeedback_structured',
-                        array('name' => format_string($criterion->name), 'desc' => ''));
-                $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
-                        array('context' => $this->get_context()));
-                $text .= html_writer::div($crit, '', array('title' => $desc));
+                        ['name' => format_string($criterion->name), 'desc' => '']);
+                $commenttext = $this->rewrite_feedback_comments_urls($feedbackcomments[$key]->commenttext, $grade->id);
+                $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat, ['context' => $this->get_context()]);
+                $text .= html_writer::div($crit, '', ['title' => $desc]);
                 $text .= html_writer::div($comment, 'well-small');
             }
         }
-        $short = shorten_text($text, 140);
 
         // Show the view all link if the text has been shortened.
+        $short = shorten_text($text, 140);
         $showviewlink = $short != $text;
 
         return $short;
@@ -926,11 +958,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $text = '';
         foreach ($criteria as $key => $criterion) {
             if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
-                $desc = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
+                $desc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
                 $crit = get_string('criteriontitle', 'assignfeedback_structured',
-                        array('name' => format_string($criterion->name), 'desc' => $desc));
-                $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
-                        array('context' => $this->get_context()));
+                        ['name' => format_string($criterion->name), 'desc' => $desc]);
+                $commenttext = $this->rewrite_feedback_comments_urls($feedbackcomments[$key]->commenttext, $grade->id);
+                $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat, ['context' => $this->get_context()]);
                 $text .= html_writer::div($crit);
                 $text .= html_writer::div($comment, 'card p-1');
             }
@@ -960,8 +992,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                     array('style' => 'font-family: Arial, sans-serif;'));
             foreach ($criteria as $key => $criterion) {
                 if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
-                    $commenttext = $this->assignment->download_rewrite_pluginfile_urls($feedbackcomments[$key]->commenttext,
-                            $user, $this);
+                    $commenttext = $this->rewrite_feedback_comments_urls($feedbackcomments[$key]->commenttext, $grade->id);
                     $description = format_text($criterion->description, FORMAT_PLAIN, array('context' => $this->get_context()));
                     $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat,
                             array('context' => $this->get_context()));
@@ -979,8 +1010,8 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $fs = get_file_storage();
-        $fsfiles = $fs->get_area_files($this->get_context()->id, 'assignfeedback_structured', ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
-                $grade->id, 'timemodified', false);
+        $fsfiles = $fs->get_area_files($this->get_context()->id, ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+                ASSIGNFEEDBACK_STRUCTURED_FILEAREA, $grade->id, 'timemodified', false);
         foreach ($fsfiles as $file) {
             $files[$file->get_filename()] = $file;
         }
@@ -1073,7 +1104,41 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return string
      */
     public function text_for_gradebook(stdClass $grade) {
-        return $this->view($grade);
+        if (!$criteria = $this->get_criteria()) {
+            return '';
+        }
+
+        $feedbackcomments = $this->get_feedback_comments($grade->id);
+
+        $text = '';
+        foreach ($criteria as $key => $criterion) {
+            if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
+                $desc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
+                $crit = get_string('criteriontitle', 'assignfeedback_structured',
+                        ['name' => format_string($criterion->name), 'desc' => $desc]);
+                $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
+                        ['context' => $this->get_context()]);
+                $text .= html_writer::div($crit);
+                $text .= html_writer::div($comment, 'card p-1');
+            }
+        }
+
+        return $text;
+    }
+
+    /**
+     * Return any files this plugin wishes to save to the gradebook.
+     *
+     * @param stdClass $grade The assign_grades object from the db
+     * @return array
+     */
+    public function files_for_gradebook(stdClass $grade) : array {
+        return [
+            'contextid' => $this->get_context()->id,
+            'component' => ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+            'filearea' => ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+            'itemid' => $grade->id
+        ];
     }
 
     /**
@@ -1094,7 +1159,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
             );
             $editorstructure = new external_single_structure($editorparams, 'Criterion ' . $key . ' editor structure',
                     VALUE_OPTIONAL);
-            $editors['assignfeedbackstructured_editor_' . $key] = $editorstructure;
+            $editors['assignfeedbackstructured' . $key . '_editor'] = $editorstructure;
         }
 
         return $editors;
@@ -1109,4 +1174,38 @@ class assign_feedback_structured extends assign_feedback_plugin {
         return (array) $this->get_config();
     }
 
+    /**
+     * Convert encoded URLs in $text from the @@PLUGINFILE@@/... form to an actual URL.
+     *
+     * @param string $text The text to check
+     * @param int $gradeid The grade ID which refers to the id in the gradebook
+     * @return string
+     */
+    private function rewrite_feedback_comments_urls(string $text, int $gradeid) {
+        return file_rewrite_pluginfile_urls(
+            $text,
+            'pluginfile.php',
+            $this->get_context()->id,
+            ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+            ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+            $gradeid
+        );
+    }
+
+    /**
+     * File format options.
+     *
+     * @return array
+     */
+    private function get_editor_options() {
+        global $COURSE;
+
+        return [
+            'subdirs' => 1,
+            'maxbytes' => $COURSE->maxbytes,
+            'accepted_types' => '*',
+            'context' => $this->get_context(),
+            'maxfiles' => EDITOR_UNLIMITED_FILES
+        ];
+    }
 }

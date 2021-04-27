@@ -63,10 +63,19 @@ class restore_assignfeedback_structured_subplugin extends restore_subplugin {
 
         $data = (object)$data;
         $data->assignment = $this->get_new_parentid('assign');
+        $oldgradeid = $data->grade;
 
         // The mapping is set in the restore for the core assign activity when a grade node is processed.
         $data->grade = $this->get_mappingid('grade', $data->grade);
 
         $DB->insert_record('assignfeedback_structured', $data);
+
+        $this->add_related_files(
+            'assignfeedback_structured',
+            'feedback',
+            'grade',
+            null,
+            $oldgradeid
+        );
     }
 }

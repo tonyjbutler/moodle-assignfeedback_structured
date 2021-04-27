@@ -81,6 +81,7 @@ $string['privacy:metadata:assignmentid'] = 'Assignment ID';
 $string['privacy:metadata:commentpurpose'] = 'The comment text.';
 $string['privacy:metadata:criterionpurpose'] = 'The name of the criterion that the comment relates to.';
 $string['privacy:metadata:critdescpurpose'] = 'The description of the criterion that the comment relates to.';
+$string['privacy:metadata:filepurpose'] = 'Feedback files from the grader for the student.';
 $string['privacy:metadata:gradepurpose'] = 'The grade ID associated with the feedback.';
 $string['privacy:metadata:tablesummary'] = 'This stores comments made by the graders as feedback for the student on specific aspects of their submission.';
 $string['privacy:path'] = 'Structured feedback';

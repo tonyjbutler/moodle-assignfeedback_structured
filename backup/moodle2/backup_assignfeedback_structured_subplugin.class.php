@@ -58,6 +58,12 @@ class backup_assignfeedback_structured_subplugin extends backup_subplugin {
         // Set source to populate the data.
         $subpluginelementcomment->set_source_table('assignfeedback_structured', array('grade' => backup::VAR_PARENTID));
 
+        $subpluginelementcomment->annotate_files(
+            'assignfeedback_structured',
+            'feedback',
+            'grade'
+        );
+
         return $subplugin;
     }
 }
