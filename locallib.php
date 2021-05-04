@@ -316,10 +316,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $editor = 'assignfeedbackstructured' . $key . '_editor';
             $formtext = $data->{$editor}['text'];
 
-            // Need to convert the form text to use @@PLUGINFILE@@ and format it so we can compare it with what is stored in the DB.
+            // Need to convert the form text to use @@PLUGINFILE@@ so we can compare it with what is stored in the DB.
             if (isset($data->{$editor}['itemid'])) {
                 $formtext = file_rewrite_urls_to_pluginfile($formtext, $data->{$editor}['itemid']);
-                $formtext = format_text($formtext, FORMAT_HTML);
             }
 
             if ($commenttext != $formtext) {
@@ -858,6 +857,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $editorlabel = get_string('criteriontitle', 'assignfeedback_structured',
                     ['name' => $criterion->name, 'desc' => $criterion->description]);
             $mform->addElement('editor', $field . '_editor', $editorlabel, null, $this->get_editor_options());
+
+            // Remove merged draft files belonging to other editors from the current editor's draft area.
+            file_remove_editor_orphaned_files($data->{$field . '_editor'});
         }
 
         return true;
@@ -881,6 +883,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         foreach ($criteria as $key => $criterion) {
             $field = 'assignfeedbackstructured' . $key;
+            if ($key > 0) {
+                // Merge draft files from the previous editor into the current one to prevent erroneous deletions.
+                $previousfield = 'assignfeedbackstructured' . ($key - 1);
+                file_merge_draft_area_into_draft_area(
+                    $data->{$previousfield . '_editor'}['itemid'],
+                    $data->{$field . '_editor'}['itemid']
+                );
+            }
             $data = file_postupdate_standard_editor(
                 $data,
                 $field,
