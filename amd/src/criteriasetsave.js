@@ -93,7 +93,7 @@ define(
             spinner.show();
 
             var criteria = [];
-            modalNode.parent().find('[id^="id_assignfeedback_structured_critname"]').each(function() {
+            modalNode.parent().parent().find('[id^="id_assignfeedback_structured_critname"]').each(function() {
                 if ($(this).val().trim().length) {
                     var descNode = $(this).parent().parent().next().find('[name^="assignfeedback_structured_critdesc"]');
                     if (!descNode.length) {

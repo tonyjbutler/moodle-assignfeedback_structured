@@ -242,6 +242,15 @@ class assignfeedback_structured_external extends external_api {
                 'label' => get_string('continue')
             );
         }
+        // Make sure at least one criterion has been defined.
+        if (empty($criteria)) {
+            return array(
+                'hide'  => true,
+                'title' => get_string('criteriasetemptytitle', 'assignfeedback_structured'),
+                'body'  => get_string('criteriasetempty', 'assignfeedback_structured'),
+                'label' => get_string('continue')
+            );
+        }
 
         $assignment = new assign($context, null, null);
         $feedback = new assign_feedback_structured($assignment, 'structured');
