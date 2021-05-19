@@ -873,21 +873,23 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @return bool Success status.
      */
     public function save(stdClass $grade, stdClass $data) {
-        global $DB;
+        global $DB, $USER;
 
         if (!$criteria = $this->get_criteria()) {
             return false;
         }
 
         $feedbackcomments = $this->get_feedback_comments($grade->id);
+
         $fs = get_file_storage();
+        $usercontext = context_user::instance($USER->id);
 
         foreach ($criteria as $key => $criterion) {
             $field = 'assignfeedbackstructured' . $key;
             if ($key > 0) {
                 // Merge any draft files from the previous editor into the current one to prevent erroneous deletions.
                 $getfromdraftid = $data->{'assignfeedbackstructured' . ($key - 1) . '_editor'}['itemid'];
-                if (!empty($fs->get_area_files($this->get_context()->id, 'user', 'draft', $getfromdraftid))) {
+                if (!empty($fs->get_area_files($usercontext->id, 'user', 'draft', $getfromdraftid))) {
                     $mergeintodraftid = $data->{$field . '_editor'}['itemid'];
                     file_merge_draft_area_into_draft_area($getfromdraftid, $mergeintodraftid);
                 }
