@@ -838,7 +838,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         foreach ($criteria as $key => $criterion) {
             $field = 'assignfeedbackstructured' . $key;
-            if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
+            $editor = $field . '_editor';
+            // Check first for data from last form submission in case grading validation failed.
+            if (!empty($data->{$editor}['text'])) {
+                $data->{$field} = $data->{$editor}['text'];
+                $data->{$field . 'format'} = $data->{$editor}['format'];
+            } else if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                 $data->{$field} = $feedbackcomments[$key]->commenttext;
                 $data->{$field . 'format'} = $feedbackcomments[$key]->commentformat;
             } else { // Set it to empty.
@@ -856,10 +861,10 @@ class assign_feedback_structured extends assign_feedback_plugin {
             );
             $editorlabel = get_string('criteriontitle', 'assignfeedback_structured',
                     ['name' => $criterion->name, 'desc' => $criterion->description]);
-            $mform->addElement('editor', $field . '_editor', $editorlabel, null, $this->get_editor_options());
+            $mform->addElement('editor', $editor, $editorlabel, null, $this->get_editor_options());
 
             // Remove any merged draft files belonging to other editors from the current editor's draft area.
-            file_remove_editor_orphaned_files($data->{$field . '_editor'});
+            file_remove_editor_orphaned_files($data->{$editor});
         }
 
         return true;
