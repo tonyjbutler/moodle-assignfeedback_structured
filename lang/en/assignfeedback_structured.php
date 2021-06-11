@@ -64,6 +64,7 @@ $string['criteriasetupdatedsuccess'] = 'Your criteria set was updated successful
 $string['criteriasetuse'] = 'Use this set';
 $string['criteriasetusesaved'] = 'Use a saved criteria set';
 $string['criteriondesc'] = 'Criterion {$a} description (optional)';
+$string['criterionheader'] = '{$a->name}: {$a->desc}';
 $string['criterionname'] = 'Criterion {$a} name';
 $string['criteriontitle'] = '<span class="criterion-name">{$a->name}:</span> <span class="criterion-desc">{$a->desc}</span>';
 $string['default'] = 'Enabled by default';
