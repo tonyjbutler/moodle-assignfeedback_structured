@@ -341,8 +341,12 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         $fields = array();
         foreach ($criteria as $criterion) {
-            $description = get_string('criterionheader', 'assignfeedback_structured',
-                    ['name' => $criterion->name, 'desc' => $criterion->description]);
+            if (!empty($criterion->description)) {
+                $description = get_string('criterionheader', 'assignfeedback_structured',
+                        ['name' => $criterion->name, 'desc' => $criterion->description]);
+            } else {
+                $description = $criterion->name;
+            }
             $fields[$criterion->name] = $description;
         }
 
