@@ -35,6 +35,13 @@ the same Moodle site.
 Changelog
 ---------
 
+2021-09-24  v3.9.0
+  * Add support for files in feedback comments
+  * Fix bug preventing criteria sets being saved
+  * Fix lost comment updates on grading validation failure
+  * Include criterion name in field description
+  * Update additional criteria fields template
+
 2019-06-11  v3.5.1
   * Bootstrap updates + accessibility adjustments
   * Add support for pushing feedback to gradebook
@@ -61,14 +68,14 @@ Installing from the Git repository (recommended if you installed Moodle
 from Git):
 
 Follow the instructions at
-http://docs.moodle.org/35/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
-e.g. for the Moodle 3.5.x code:
+http://docs.moodle.org/39/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
+e.g. for the Moodle 3.9.x code:
 
 $ cd /path/to/your/moodle/
 $ cd mod/assign/feedback/
-$ git clone https://github.com/lucisgit/moodle-assignfeedback_structured.git structured
+$ git clone https://github.com/tonyjbutler/moodle-assignfeedback_structured.git structured
 $ cd structured/
-$ git checkout -b MOODLE_35_STABLE origin/MOODLE_35_STABLE
+$ git checkout -b MOODLE_39_STABLE origin/MOODLE_39_STABLE
 $ git branch -d master
 $ cd /path/to/your/moodle/
 $ echo /mod/assign/feedback/structured/ >> .git/info/exclude
@@ -93,7 +100,7 @@ Updating Moodle
 
 If you installed Moodle and the Structured feedback plugin from Git you
 can run the following commands to update both (see
-http://docs.moodle.org/35/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
+http://docs.moodle.org/39/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
 
 $ cd /path/to/your/moodle/
 $ git pull
