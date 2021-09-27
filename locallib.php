@@ -683,7 +683,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Helper used by {@link repeat_elements()}.
+     * Helper used by {@see \assign_feedback_structured::repeat_elements()}.
      *
      * @param int $i the index of this element.
      * @param HTML_QuickForm_element $elementclone
