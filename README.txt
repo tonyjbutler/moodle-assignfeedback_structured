@@ -35,6 +35,10 @@ the same Moodle site.
 Changelog
 ---------
 
+2021-09-27  v3.9.1
+  * Add Moodle plugin CI github action tests
+  * Address issues identified by code prechecker
+
 2021-09-24  v3.9.0
   * Add support for files in feedback comments
   * Fix bug preventing criteria sets being saved
