@@ -23,8 +23,6 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Structured feedback upgrade code.
  *

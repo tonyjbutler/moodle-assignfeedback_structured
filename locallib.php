@@ -23,8 +23,6 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 // File component for structured feedback.
 define('ASSIGNFEEDBACK_STRUCTURED_COMPONENT', 'assignfeedback_structured');
 
