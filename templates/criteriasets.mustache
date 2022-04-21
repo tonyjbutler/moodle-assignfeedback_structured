@@ -182,7 +182,7 @@
         }
 
         // Get criteria data when expanded for the first time.
-        var criteriaToggle = $('[data-toggle="collapse"]');
+        var criteriaToggle = $('[data-toggle="collapse"][href^="#criteria-data-"]');
         criteriaToggle.on('click', function() {
             if ($(this).hasClass('collapsed')) {
                 var spinner = $(this).parent().siblings('.criteria-data').children('.loading-icon');
