@@ -20,7 +20,6 @@
  *
  * @module     assignfeedback_structured/criteriasetsave
  * @class      criteriasetsave
- * @package    assignfeedback_structured
  * @copyright  2017 Lancaster University {@link http://www.lancaster.ac.uk/}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @author     Tony Butler <a.butler4@lancaster.ac.uk>
