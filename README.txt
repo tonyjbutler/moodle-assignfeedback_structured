@@ -35,6 +35,10 @@ the same Moodle site.
 Changelog
 ---------
 
+2022-04-22  v4.0.0
+  * Increase specificity of criteria set toggle selector
+  * Rebuild JavaScript and address JSDoc issues identified
+
 2021-09-27  v3.9.1
   * Add Moodle plugin CI github action tests
   * Address issues identified by code prechecker
@@ -72,14 +76,14 @@ Installing from the Git repository (recommended if you installed Moodle
 from Git):
 
 Follow the instructions at
-http://docs.moodle.org/39/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
-e.g. for the Moodle 3.9.x code:
+http://docs.moodle.org/400/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
+e.g. for the Moodle 4.0.x code:
 
 $ cd /path/to/your/moodle/
 $ cd mod/assign/feedback/
 $ git clone https://github.com/tonyjbutler/moodle-assignfeedback_structured.git structured
 $ cd structured/
-$ git checkout -b MOODLE_39_STABLE origin/MOODLE_39_STABLE
+$ git checkout -b MOODLE_400_STABLE origin/MOODLE_400_STABLE
 $ git branch -d master
 $ cd /path/to/your/moodle/
 $ echo /mod/assign/feedback/structured/ >> .git/info/exclude
@@ -104,7 +108,7 @@ Updating Moodle
 
 If you installed Moodle and the Structured feedback plugin from Git you
 can run the following commands to update both (see
-http://docs.moodle.org/39/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
+http://docs.moodle.org/400/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
 
 $ cd /path/to/your/moodle/
 $ git pull
