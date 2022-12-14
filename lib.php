@@ -72,7 +72,7 @@ function assignfeedback_structured_pluginfile(
 
     $fs = get_file_storage();
 
-    if (!$file = $fs->get_file_by_hash(sha1($fullpath)) or $file->is_directory()) {
+    if (!($file = $fs->get_file_by_hash(sha1($fullpath))) || $file->is_directory()) {
         return false;
     }
 

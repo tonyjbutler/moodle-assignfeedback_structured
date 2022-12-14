@@ -150,7 +150,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         global $DB, $USER;
 
         // Return an error if user is copying, and any criteria are configured and have feedback already.
-        if ($criteria = $this->get_criteria() and $includeshared) {
+        if (($criteria = $this->get_criteria()) && $includeshared) {
             foreach ($criteria as $key => $criterion) {
                 if ($this->is_criterion_used($key)) {
                     return get_string('criteriaused', 'assignfeedback_structured');
