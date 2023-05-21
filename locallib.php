@@ -601,7 +601,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 get_string('criteriondesc', 'assignfeedback_structured'), 'rows="4" cols="64"');
 
         if ($criteria = $this->get_criteria()) {
-            $mform->setExpanded('assignfeedback_structured_criteria', true);
+            $mform->setExpanded('assignfeedback_structured_criteria');
             if (!empty($criterialocked)) {
                 $critrepeats = count($criteria);
             } else {
@@ -662,6 +662,17 @@ class assign_feedback_structured extends assign_feedback_plugin {
         // If this is not the last feedback plugin, add a section to contain the settings for the rest.
         if (!$this->is_last()) {
             $mform->addElement('header', 'feedbacksettings', get_string('feedbacksettings', 'assign'));
+        }
+
+        // If this is a new assignment, set the default name/description for the first criterion.
+        if (!$this->assignment->has_instance()) {
+            if (!empty($defaultcritname = get_config('assignfeedback_structured', 'defaultcritname'))) {
+                $mform->setDefault('assignfeedback_structured_critname[0]', $defaultcritname);
+                if (!empty($defaultcritdesc = get_config('assignfeedback_structured', 'defaultcritdesc'))) {
+                    $mform->setDefault('assignfeedback_structured_critdesc[0]', $defaultcritdesc);
+                }
+                $mform->setExpanded('assignfeedback_structured_criteria');
+            }
         }
 
         // Pre-populate fields with existing data and lock as appropriate.
