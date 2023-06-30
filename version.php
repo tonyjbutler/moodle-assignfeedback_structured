@@ -25,8 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2022121401;
+$plugin->version   = 2023063000;
 $plugin->requires  = 2021051700;
 $plugin->component = 'assignfeedback_structured';
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = '4.1.0 (Build: 20221214)';
+$plugin->release   = '4.1.1 (Build: 20230630)';

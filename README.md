@@ -35,6 +35,9 @@ the same Moodle site.
 Changelog
 ---------
 
+2023-06-30  v4.1.1
+  * Add site defaults for first criterion name and description
+
 2022-12-14  v4.1.0
   * Add new lang string to replace one removed from core
   * Address new issues identified by Moodle code checker
