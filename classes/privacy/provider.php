@@ -29,11 +29,11 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
-use \core_privacy\local\metadata\collection;
-use \core_privacy\local\request\writer;
-use \core_privacy\local\request\contextlist;
-use \mod_assign\privacy\assign_plugin_request_data;
-use \mod_assign\privacy\useridlist;
+use core_privacy\local\metadata\collection;
+use core_privacy\local\request\writer;
+use core_privacy\local\request\contextlist;
+use mod_assign\privacy\assign_plugin_request_data;
+use mod_assign\privacy\useridlist;
 
 /**
  * Privacy class for requesting user data.
@@ -60,7 +60,7 @@ class provider implements
             'grade' => 'privacy:metadata:gradepurpose',
             'commenttext' => 'privacy:metadata:commentpurpose',
             'criterionname' => 'privacy:metadata:criterionpurpose',
-            'criteriondesc' => 'privacy:metadata:critdescpurpose'
+            'criteriondesc' => 'privacy:metadata:critdescpurpose',
         ];
         $collection->add_database_table('assignfeedback_structured', $data, 'privacy:metadata:tablesummary');
         $collection->add_subsystem_link('core_files', [], 'privacy:metadata:filepurpose');

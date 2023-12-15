@@ -45,8 +45,8 @@ class backup_assignfeedback_structured_subplugin extends backup_subplugin {
         $subplugin = $this->get_subplugin_element();
         $subpluginwrapper = new backup_nested_element($this->get_recommended_name());
         $subpluginelementcomments = new backup_nested_element('feedback_structured');
-        $subpluginelementcomment = new backup_nested_element('structured_comment', array('id'),
-                array('grade', 'criterion', 'commenttext', 'commentformat'));
+        $subpluginelementcomment = new backup_nested_element('structured_comment', ['id'],
+                ['grade', 'criterion', 'commenttext', 'commentformat']);
 
         // Connect XML elements into the tree.
         $subplugin->add_child($subpluginwrapper);
@@ -54,7 +54,7 @@ class backup_assignfeedback_structured_subplugin extends backup_subplugin {
         $subpluginelementcomments->add_child($subpluginelementcomment);
 
         // Set source to populate the data.
-        $subpluginelementcomment->set_source_table('assignfeedback_structured', array('grade' => backup::VAR_PARENTID));
+        $subpluginelementcomment->set_source_table('assignfeedback_structured', ['grade' => backup::VAR_PARENTID]);
 
         $subpluginelementcomment->annotate_files(
             'assignfeedback_structured',

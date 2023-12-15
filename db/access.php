@@ -25,19 +25,19 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
-    'assignfeedback/structured:manageowncriteriasets' => array(
+$capabilities = [
+    'assignfeedback/structured:manageowncriteriasets' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'editingteacher' => CAP_ALLOW
-        )
-    ),
-    'assignfeedback/structured:publishcriteriasets' => array(
+        'archetypes' => [
+            'editingteacher' => CAP_ALLOW,
+        ],
+    ],
+    'assignfeedback/structured:publishcriteriasets' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    )
-);
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+];

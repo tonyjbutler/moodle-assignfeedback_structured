@@ -52,7 +52,7 @@ function assignfeedback_structured_pluginfile(
 
     require_login($course, false, $cm);
     $itemid = (int)array_shift($args);
-    $record = $DB->get_record('assign_grades', array('id' => $itemid), 'userid, assignment', MUST_EXIST);
+    $record = $DB->get_record('assign_grades', ['id' => $itemid], 'userid, assignment', MUST_EXIST);
     $userid = $record->userid;
 
     $assign = new assign($context, $cm, $course);

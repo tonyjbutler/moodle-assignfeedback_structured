@@ -44,10 +44,10 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function get_criteria_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
-                'criteriasetid' => new external_value(PARAM_INT, 'The criteria set ID for which to return criteria data')
-            )
+                'criteriasetid' => new external_value(PARAM_INT, 'The criteria set ID for which to return criteria data'),
+            ]
         );
     }
 
@@ -64,12 +64,12 @@ class assignfeedback_structured_external extends external_api {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
-        $parameters = array(
+        $parameters = [
                 'contextid'     => $contextid,
-                'criteriasetid' => $criteriasetid
-        );
+                'criteriasetid' => $criteriasetid,
+        ];
         self::validate_parameters(self::get_criteria_parameters(), $parameters);
-        $context = self::get_context_from_params(array('contextid' => $contextid));
+        $context = self::get_context_from_params(['contextid' => $contextid]);
         self::validate_context($context);
 
         $assignment = new assign($context, null, null);
@@ -86,10 +86,10 @@ class assignfeedback_structured_external extends external_api {
     public static function get_criteria_returns() {
         return new external_multiple_structure(
             new external_single_structure(
-                array(
+                [
                     'name'        => new external_value(PARAM_TEXT, 'The criterion name'),
-                    'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL)
-                ), 'The data for a single criterion'
+                    'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL),
+                ], 'The data for a single criterion'
             ), 'The criteria data'
         );
     }
@@ -101,10 +101,10 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function get_criteriasets_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
-                'includeshared' => new external_value(PARAM_BOOL, 'Whether to include shared criteria sets owned by other users')
-            )
+                'includeshared' => new external_value(PARAM_BOOL, 'Whether to include shared criteria sets owned by other users'),
+            ]
         );
     }
 
@@ -122,12 +122,12 @@ class assignfeedback_structured_external extends external_api {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
-        $parameters = array(
+        $parameters = [
             'contextid'     => $contextid,
-            'includeshared' => $includeshared
-        );
+            'includeshared' => $includeshared,
+        ];
         self::validate_parameters(self::get_criteriasets_parameters(), $parameters);
-        $context = self::get_context_from_params(array('contextid' => $contextid));
+        $context = self::get_context_from_params(['contextid' => $contextid]);
         self::validate_context($context);
         if (!$includeshared && !has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
             throw new moodle_exception('nopermissionstomanage', 'assignfeedback_structured');
@@ -137,7 +137,7 @@ class assignfeedback_structured_external extends external_api {
         $feedback = new assign_feedback_structured($assignment, 'structured');
 
         if (!is_array($criteriasets = $feedback->get_criteria_sets_for_user($includeshared))) {
-            return array();
+            return [];
         }
 
         return $criteriasets;
@@ -150,25 +150,25 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function get_criteriasets_returns() {
         return new external_single_structure(
-            array(
+            [
                 'ownedsets' => new external_multiple_structure(
                     new external_single_structure(
-                        array(
+                        [
                             'id'     => new external_value(PARAM_TEXT, 'The criteria set ID'),
                             'name'   => new external_value(PARAM_RAW, 'The criteria set name'),
-                            'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set is shared')
-                        ), 'The data for a single owned criteria set'
+                            'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set is shared'),
+                        ], 'The data for a single owned criteria set'
                     ), 'The data for any owned criteria sets', VALUE_OPTIONAL
                 ),
                 'sharedsets' => new external_multiple_structure(
                     new external_single_structure(
-                        array(
+                        [
                             'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),
-                            'name' => new external_value(PARAM_RAW, 'The criteria set name')
-                        ), 'The data for a single shared criteria set'
+                            'name' => new external_value(PARAM_RAW, 'The criteria set name'),
+                        ], 'The data for a single shared criteria set'
                     ), 'The data for any shared criteria sets', VALUE_OPTIONAL
-                )
-            )
+                ),
+            ]
         );
     }
 
@@ -179,19 +179,19 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function save_criteriaset_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'contextid' => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
                 'name'      => new external_value(PARAM_TEXT, 'A name for the new criteria set'),
                 'criteria'  => new external_multiple_structure(
                     new external_single_structure(
-                        array(
+                        [
                             'name'        => new external_value(PARAM_TEXT, 'The criterion name'),
-                            'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL)
-                        ), 'The data for a single criterion'
+                            'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL),
+                        ], 'The data for a single criterion'
                     ), 'The criteria data'
                 ),
-                'shared'    => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared')
-            )
+                'shared'    => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared'),
+            ]
         );
     }
 
@@ -211,14 +211,14 @@ class assignfeedback_structured_external extends external_api {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
-        $parameters = array(
+        $parameters = [
             'contextid' => $contextid,
             'name'      => $name,
             'criteria'  => $criteria,
-            'shared'    => $shared
-        );
+            'shared'    => $shared,
+        ];
         self::validate_parameters(self::save_criteriaset_parameters(), $parameters);
-        $context = self::get_context_from_params(array('contextid' => $contextid));
+        $context = self::get_context_from_params(['contextid' => $contextid]);
         self::validate_context($context);
         if (!has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
             throw new moodle_exception('nopermissionstosave', 'assignfeedback_structured');
@@ -226,50 +226,50 @@ class assignfeedback_structured_external extends external_api {
 
         // A criteria set name must be provided.
         if (empty($name)) {
-            return array(
+            return [
                 'hide'  => false,
                 'title' => get_string('criteriasetnonametitle', 'assignfeedback_structured'),
                 'body'  => get_string('criteriasetnoname', 'assignfeedback_structured'),
-                'label' => get_string('continue')
-            );
+                'label' => get_string('continue'),
+            ];
         }
         // Validate global uniqueness of criteria set name provided.
-        if ($DB->record_exists('assignfeedback_structured_cs', array('name_lc' => strtolower($name)))) {
-            return array(
+        if ($DB->record_exists('assignfeedback_structured_cs', ['name_lc' => strtolower($name)])) {
+            return [
                 'hide'  => false,
                 'title' => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
                 'body'  => get_string('criteriasetnameused', 'assignfeedback_structured', ucfirst($name)),
-                'label' => get_string('continue')
-            );
+                'label' => get_string('continue'),
+            ];
         }
         // Make sure at least one criterion has been defined.
         if (empty($criteria)) {
-            return array(
+            return [
                 'hide'  => true,
                 'title' => get_string('criteriasetemptytitle', 'assignfeedback_structured'),
                 'body'  => get_string('criteriasetempty', 'assignfeedback_structured'),
-                'label' => get_string('continue')
-            );
+                'label' => get_string('continue'),
+            ];
         }
 
         $assignment = new assign($context, null, null);
         $feedback = new assign_feedback_structured($assignment, 'structured');
 
         if ($feedback->save_criteria_set($name, $criteria, $shared)) {
-            return array(
+            return [
                 'hide'  => true,
                 'title' => get_string('criteriasetsaved', 'assignfeedback_structured'),
                 'body'  => get_string('criteriasetsavedsuccess', 'assignfeedback_structured', ucfirst($name)),
-                'label' => get_string('ok')
-            );
+                'label' => get_string('ok'),
+            ];
         }
 
-        return array(
+        return [
             'hide'  => true,
             'title' => get_string('error'),
             'body'  => get_string('criteriasetnotsaved', 'assignfeedback_structured'),
-            'label' => get_string('continue')
-        );
+            'label' => get_string('continue'),
+        ];
     }
 
     /**
@@ -279,12 +279,12 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function save_criteriaset_returns() {
         return new external_single_structure(
-            array(
+            [
                 'hide'  => new external_value(PARAM_BOOL, 'Whether or not to hide the save dialogue'),
                 'title' => new external_value(PARAM_TEXT, 'The title of the message to display to the user'),
                 'body'  => new external_value(PARAM_TEXT, 'The body text of the message to display to the user'),
-                'label' => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user')
-            )
+                'label' => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user'),
+            ]
         );
     }
 
@@ -295,16 +295,16 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function update_criteriaset_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
                 'criteriasetid' => new external_value(PARAM_INT, 'The ID of the criteria set to be updated'),
                 'updates'       => new external_single_structure(
-                    array(
+                    [
                         'name'   => new external_value(PARAM_TEXT, 'The new name for the criteria set', VALUE_OPTIONAL),
-                        'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set should be shared', VALUE_OPTIONAL)
-                    ), 'The key/value pairs of attributes to be updated'
-                )
-            )
+                        'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set should be shared', VALUE_OPTIONAL),
+                    ], 'The key/value pairs of attributes to be updated'
+                ),
+            ]
         );
     }
 
@@ -323,13 +323,13 @@ class assignfeedback_structured_external extends external_api {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
-        $parameters = array(
+        $parameters = [
             'contextid'     => $contextid,
             'criteriasetid' => $criteriasetid,
-            'updates'       => $updates
-        );
+            'updates'       => $updates,
+        ];
         self::validate_parameters(self::update_criteriaset_parameters(), $parameters);
-        $context = self::get_context_from_params(array('contextid' => $contextid));
+        $context = self::get_context_from_params(['contextid' => $contextid]);
         self::validate_context($context);
         if (!has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
             throw new moodle_exception('nopermissionstoupdate', 'assignfeedback_structured');
@@ -343,29 +343,29 @@ class assignfeedback_structured_external extends external_api {
             if ($key == 'name') {
                 // The name cannot be empty.
                 if (empty($value)) {
-                    return array(
+                    return [
                         'success' => false,
                         'title'   => get_string('criteriasetnonametitle', 'assignfeedback_structured'),
                         'body'    => get_string('criteriasetnoname', 'assignfeedback_structured'),
-                        'label'   => get_string('continue')
-                    );
+                        'label'   => get_string('continue'),
+                    ];
                 }
                 // Capitalise the initial letter.
                 $updates['name'] = ucfirst($value);
 
                 // The name must also be globally unique.
                 $namelc = strtolower($value);
-                if ($criteriaset = $DB->get_record('assignfeedback_structured_cs', array('name_lc' => $namelc), 'id')) {
+                if ($criteriaset = $DB->get_record('assignfeedback_structured_cs', ['name_lc' => $namelc], 'id')) {
                     if ($criteriaset->id != $criteriasetid) {
-                        return array(
+                        return [
                             'success' => false,
                             'title'   => get_string('criteriasetnameusedtitle', 'assignfeedback_structured'),
                             'body'    => get_string('criteriasetnameused', 'assignfeedback_structured', $value),
-                            'label'   => get_string('continue')
-                        );
+                            'label'   => get_string('continue'),
+                        ];
                     }
                 }
-                $updates = array_merge($updates, array('name_lc' => $namelc));
+                $updates = array_merge($updates, ['name_lc' => $namelc]);
             }
         }
 
@@ -373,20 +373,20 @@ class assignfeedback_structured_external extends external_api {
         $feedback = new assign_feedback_structured($assignment, 'structured');
 
         if ($feedback->update_criteria_set($criteriasetid, $updates)) {
-            return array(
+            return [
                 'success' => true,
                 'title'   => get_string('criteriasetupdated', 'assignfeedback_structured'),
                 'body'    => get_string('criteriasetupdatedsuccess', 'assignfeedback_structured'),
-                'label'   => get_string('ok')
-            );
+                'label'   => get_string('ok'),
+            ];
         }
 
-        return array(
+        return [
             'success' => false,
             'title'   => get_string('error'),
             'body'    => get_string('criteriasetnotupdated', 'assignfeedback_structured'),
-            'label'   => get_string('continue')
-        );
+            'label'   => get_string('continue'),
+        ];
     }
 
     /**
@@ -396,12 +396,12 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function update_criteriaset_returns() {
         return new external_single_structure(
-            array(
+            [
                 'success' => new external_value(PARAM_BOOL, 'Whether or not the criteria set was successfully updated'),
                 'title'   => new external_value(PARAM_TEXT, 'The title of the message to display to the user'),
                 'body'    => new external_value(PARAM_TEXT, 'The body text of the message to display to the user'),
-                'label'   => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user')
-            )
+                'label'   => new external_value(PARAM_TEXT, 'The button label for the message dialogue displayed to the user'),
+            ]
         );
     }
 
@@ -412,10 +412,10 @@ class assignfeedback_structured_external extends external_api {
      */
     public static function delete_criteriaset_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'contextid'     => new external_value(PARAM_INT, 'The context ID of the current assignment instance'),
-                'criteriasetid' => new external_value(PARAM_INT, 'The ID of the criteria set to be deleted')
-            )
+                'criteriasetid' => new external_value(PARAM_INT, 'The ID of the criteria set to be deleted'),
+            ]
         );
     }
 
@@ -433,12 +433,12 @@ class assignfeedback_structured_external extends external_api {
         require_once($CFG->dirroot . '/mod/assign/locallib.php');
         require_once($CFG->dirroot . '/mod/assign/feedback/structured/locallib.php');
 
-        $parameters = array(
+        $parameters = [
             'contextid'     => $contextid,
-            'criteriasetid' => $criteriasetid
-        );
+            'criteriasetid' => $criteriasetid,
+        ];
         self::validate_parameters(self::delete_criteriaset_parameters(), $parameters);
-        $context = self::get_context_from_params(array('contextid' => $contextid));
+        $context = self::get_context_from_params(['contextid' => $contextid]);
         self::validate_context($context);
         if (!has_capability('assignfeedback/structured:manageowncriteriasets', $context)) {
             throw new moodle_exception('nopermissionstodelete', 'assignfeedback_structured');

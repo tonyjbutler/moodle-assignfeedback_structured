@@ -25,48 +25,48 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$functions = array(
-    'assignfeedback_structured_get_criteria' => array(
+$functions = [
+    'assignfeedback_structured_get_criteria' => [
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'get_criteria',
         'classpath'     => 'mod/assign/feedback/structured/externallib.php',
         'description'   => 'Get the criteria data for a given criteria set',
         'type'          => 'read',
-        'ajax'          => true
-    ),
-    'assignfeedback_structured_get_criteriasets' => array(
+        'ajax'          => true,
+    ],
+    'assignfeedback_structured_get_criteriasets' => [
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'get_criteriasets',
         'classpath'     => 'mod/assign/feedback/structured/externallib.php',
         'description'   => 'Get all saved criteria sets for the current user',
         'type'          => 'read',
-        'ajax'          => true
-    ),
-    'assignfeedback_structured_save_criteriaset' => array(
+        'ajax'          => true,
+    ],
+    'assignfeedback_structured_save_criteriaset' => [
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'save_criteriaset',
         'classpath'     => 'mod/assign/feedback/structured/externallib.php',
         'description'   => 'Save a criteria set to copy later',
         'type'          => 'write',
         'ajax'          => true,
-        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets'
-    ),
-    'assignfeedback_structured_update_criteriaset' => array(
+        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets',
+    ],
+    'assignfeedback_structured_update_criteriaset' => [
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'update_criteriaset',
         'classpath'     => 'mod/assign/feedback/structured/externallib.php',
         'description'   => 'Update the details of a saved criteria set',
         'type'          => 'write',
         'ajax'          => true,
-        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets'
-    ),
-    'assignfeedback_structured_delete_criteriaset' => array(
+        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets',
+    ],
+    'assignfeedback_structured_delete_criteriaset' => [
         'classname'     => 'assignfeedback_structured_external',
         'methodname'    => 'delete_criteriaset',
         'classpath'     => 'mod/assign/feedback/structured/externallib.php',
         'description'   => 'Delete a saved criteria set',
         'type'          => 'write',
         'ajax'          => true,
-        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets'
-    )
-);
+        'capabilities'  => 'assignfeedback/structured:manageowncriteriasets',
+    ],
+];

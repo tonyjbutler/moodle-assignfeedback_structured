@@ -40,7 +40,7 @@ class restore_assignfeedback_structured_subplugin extends restore_subplugin {
      * @return array
      */
     protected function define_grade_subplugin_structure() {
-        $paths = array();
+        $paths = [];
 
         $elename = $this->get_namefor('grade');
 
