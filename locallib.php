@@ -1165,7 +1165,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @param stdClass $grade The assign_grades object from the db
      * @return array
      */
-    public function files_for_gradebook(stdClass $grade) : array {
+    public function files_for_gradebook(stdClass $grade): array {
         return [
             'contextid' => $this->get_context()->id,
             'component' => ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
