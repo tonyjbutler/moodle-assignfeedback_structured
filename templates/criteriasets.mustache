@@ -491,13 +491,8 @@
                     newIndexes: newIndexes
                 };
                 var lastFieldId = 'id_assignfeedback_structured_critdesc_' + (critFields - 1);
-                var lastNode = $('#fitem_' + lastFieldId + '[class^="form-group"]');
-                var templateName = 'assignfeedback_structured/criterianodes_boost';
-                // Use a different template for Clean-based themes.
-                if (!lastNode.length) {
-                    lastNode = $('#fitem_' + lastFieldId);
-                    templateName = 'assignfeedback_structured/criterianodes';
-                }
+                var lastNode = $('#fitem_' + lastFieldId);
+                var templateName = 'assignfeedback_structured/criterianodes';
                 templates.render(templateName, context).done(function(html, js) {
                     templates.replaceNode(lastNode, html, js);
                     populateFields();
