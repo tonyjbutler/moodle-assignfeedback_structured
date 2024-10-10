@@ -35,6 +35,10 @@ the same Moodle site.
 Changelog
 ---------
 
+2024-10-10  v4.5.0
+  * Fix minor UI display issues and form layout for Moodle 4.5
+  * Address new issues identified by Moodle code checker
+
 2023-06-30  v4.1.1
   * Add site defaults for first criterion name and description
 
@@ -83,14 +87,14 @@ Installing from the Git repository (recommended if you installed Moodle
 from Git):
 
 Follow the instructions at
-https://docs.moodle.org/401/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
-e.g. for the Moodle 4.1.x code:
+https://docs.moodle.org/405/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
+e.g. for the Moodle 4.5.x code:
 
     $ cd /path/to/your/moodle/
     $ cd mod/assign/feedback/
     $ git clone https://github.com/tonyjbutler/moodle-assignfeedback_structured.git structured
     $ cd structured/
-    $ git checkout -b MOODLE_401_STABLE origin/MOODLE_401_STABLE
+    $ git checkout -b MOODLE_405_STABLE origin/MOODLE_405_STABLE
     $ git branch -d master
     $ cd /path/to/your/moodle/
     $ echo /mod/assign/feedback/structured/ >> .git/info/exclude
@@ -115,7 +119,7 @@ Updating Moodle
 
 If you installed Moodle and the Structured feedback plugin from Git you
 can run the following commands to update both (see
-https://docs.moodle.org/401/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
+https://docs.moodle.org/405/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
 
     $ cd /path/to/your/moodle/
     $ git pull
