@@ -24,19 +24,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @author     Tony Butler <a.butler4@lancaster.ac.uk>
  */
-define(['jquery', 'core/templates'], function($, templates) {
-    return {
-        /**
-         * Init function.
-         *
-         * @param {object[]} criteriaData An array of data objects for the criteria returned.
-         */
-        init: function(criteriaData) {
-            var context = {
-                criteriaData: criteriaData
-            };
 
-            templates.render('assignfeedback_structured/criteria', context);
-        }
+import Templates from 'core/templates';
+
+/**
+ * Init function.
+ *
+ * @param {Object[]} criteriaData An array of data objects for the criteria returned.
+ */
+export const init = async(criteriaData) => {
+    const context = {
+        criteriaData: criteriaData
     };
-});
+
+    await Templates.render('assignfeedback_structured/criteria', context);
+};

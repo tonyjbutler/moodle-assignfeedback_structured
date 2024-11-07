@@ -24,116 +24,136 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @author     Tony Butler <a.butler4@lancaster.ac.uk>
  */
-define(
-    [
-        'jquery',
-        'core/ajax',
-        'core/notification',
-        'core/str',
-        'core/templates',
-        'core/modal_factory',
-        'core/modal_events'
-    ],
-    function($, ajax, notification, str, templates, ModalFactory, ModalEvents) {
-        var criteriaSetSave = {
-            /**
-             * Init function.
-             *
-             * @param {number} contextId The context ID of the current assignment instance.
-             * @param {boolean} canPublish Whether the current user can publish criteria sets.
-             */
-            init: function(contextId, canPublish) {
-                str.get_string('criteriasetsave', 'assignfeedback_structured').done(function(title) {
-                    var context = {
-                        canPublish: canPublish
-                    };
-                    var trigger = $('#id_assignfeedback_structured_critsetsave');
-                    ModalFactory.create({
-                        title: title,
-                        body: templates.render('assignfeedback_structured/criteriasetsave', context),
-                        type: ModalFactory.types.SAVE_CANCEL,
-                        large: false
-                    }, trigger).done(function(modal) {
-                        // Disable save button initially.
-                        modal.getFooter().find('[data-action="save"]').prop('disabled', true);
-                        modal.getRoot().on(ModalEvents.save, function(e) {
-                            e.preventDefault();
-                            saveSet(modal, contextId);
-                        });
-                        // Clear field values on hide.
-                        modal.getRoot().on(ModalEvents.hidden, function() {
-                            $(this).find('[name="criteriaset-name"]').val('');
-                            $(this).find('[name="criteriaset-publish"]').prop('checked', false);
-                            $(this).find('[data-action="save"]').prop('disabled', true);
-                        });
-                    }).fail(notification.exception);
-                }).fail(notification.exception);
-            }
+
+import Ajax from 'core/ajax';
+import Notification from 'core/notification';
+import {getString} from 'core/str';
+import Templates from 'core/templates';
+import {modalActive} from './criteriasets';
+import CSSaveModal from './cssavemodal';
+
+/**
+ * Init function.
+ *
+ * @param {number} contextId The context ID of the current assignment instance.
+ * @param {boolean} canPublish Whether the current user can publish criteria sets.
+ * @return {Promise} A promise.
+ */
+export const init = async(contextId, canPublish) => {
+    const title = await getString('criteriasetsave', 'assignfeedback_structured'),
+        button = document.querySelector('#id_assignfeedback_structured_critsetsave');
+    button.addEventListener('click', async() => {
+        const templateContext = {
+            contextId: contextId,
+            canPublish: canPublish,
         };
+        const body = await Templates.render('assignfeedback_structured/criteriasetsave', templateContext);
+        const modal = await CSSaveModal.create({
+            title: title,
+            body: body,
+        });
 
-        /**
-         * Function to gather the criteria data and call a web service method via AJAX to save as a named criteria set.
-         *
-         * @param {object} modal The modal dialogue containing the criteria set save data.
-         * @param {number} contextId The context ID of the current assignment instance.
-         */
-        function saveSet(modal, contextId) {
-            var modalNode = modal.getRoot(),
-                nameNode = modalNode.find('[name="criteriaset-name"]'),
-                rawName = nameNode.val().trim(),
-                shared = false,
-                spinner = modalNode.find('.loading-icon');
+        // Display a spinner while the modal is active.
+        await modalActive(button);
 
-            var name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-            nameNode.val(name);
-            if (modalNode.find('[name="criteriaset-publish"]').prop('checked')) {
-                shared = true;
+        const modalFooter = await modal.getFooter(),
+            modalBody = await modal.getBody(),
+            nameInput = modalBody.find('[name="criteriaset-name"]'),
+            shareBox = modalBody.find('[name="criteriaset-publish"]'),
+            saveButton = modalFooter.find(modal.getActionSelector('save'));
+
+        // Disable save button initially, and hide the loading icon.
+        modalFooter.find(modal.getActionSelector('save')).prop('disabled', true);
+        modalBody.find('.loading-icon').hide();
+
+        // Enable save button only if the name field contains some text.
+        nameInput.on('keyup blur', () => {
+            if (nameInput.val().trim()) {
+                saveButton.prop('disabled', false);
+            } else {
+                saveButton.prop('disabled', true);
             }
-            spinner.show();
+        });
 
-            var criteria = [];
-            modalNode.parent().parent().find('[id^="id_assignfeedback_structured_critname"]').each(function() {
-                if ($(this).val().trim().length) {
-                    var descNode = $(this).parent().parent().next().find('[name^="assignfeedback_structured_critdesc"]');
-                    if (!descNode.length) {
-                        descNode = $(this).parent().parent().next().find('[data-fieldtype="textarea"]');
-                    }
-                    var descText;
-                    if (descNode.val()) {
-                        descText = descNode.val().trim();
-                    } else if (descNode.text()) {
-                        descText = descNode.text().trim();
-                    } else {
-                        descText = '';
-                    }
-                    criteria.push({
-                        name: $(this).val().trim(),
-                        description: descText
-                    });
-                }
-            });
+        // Fix a weird bug when hitting Enter on the name input field.
+        nameInput.on('keydown', (e) => {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                shareBox.focus();
+            }
+        });
 
-            var request = ajax.call([{
-                methodname: 'assignfeedback_structured_save_criteriaset',
-                args: {
-                    contextid: contextId,
-                    name: name,
-                    criteria: criteria,
-                    shared: shared
-                }
-            }]);
+        // Fix same weird bug when hitting Enter on the 'share' checkbox.
+        shareBox.on('keydown', (e) => {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+                saveButton.focus();
+            }
+        });
 
-            request[0].done(function(response) {
-                if (response.hide === true) {
-                    modal.hide();
-                    $('#id_assignfeedback_structured_critsetsmanage').prop('disabled', false);
-                }
-                notification.alert(response.title, response.body, response.label);
-            }).fail(notification.exception).always(function() {
-                spinner.hide();
+        // Fix duplicate submission when hitting Enter on the save button.
+        saveButton.on('keydown', (e) => {
+            if (e.keyCode === 13) {
+                e.preventDefault();
+            }
+        });
+    });
+};
+
+/**
+ * Function to gather the criteria data and call a web service method via AJAX to save as a named criteria set.
+ *
+ * @param {Object} modal The modal dialogue containing the criteria set save data.
+ * @return {Promise} A promise.
+ */
+export const saveSet = async(modal) => {
+    const modalRoot = await modal.getRoot(),
+        contextId = modalRoot.find('.criteriasetsave-page').data('context'),
+        nameInput = modalRoot.find('[name="criteriaset-name"]'),
+        rawName = nameInput.val().trim(),
+        spinner = modalRoot.find('.loading-icon');
+    let shared = false;
+
+    const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+    nameInput.val(name);
+    if (modalRoot.find('[name="criteriaset-publish"]').prop('checked')) {
+        shared = true;
+    }
+    spinner.show();
+
+    const criteria = [];
+    for (const name of document.querySelectorAll('input[id^="id_assignfeedback_structured_critname"]')) {
+        if (name.value.trim().length) {
+            const descField = name.parentElement.parentElement.nextElementSibling
+                .querySelector('[name^="assignfeedback_structured_critdesc"]');
+            let descText = '';
+            if (descField.value) {
+                descText = descField.value.trim();
+            } else if (descField.textContent) {
+                descText = descField.textContent.trim();
+            }
+            criteria.push({
+                name: name.value.trim(),
+                description: descText,
             });
         }
-
-        return criteriaSetSave;
     }
-);
+
+    const request = Ajax.call([{
+        methodname: 'assignfeedback_structured_save_criteriaset',
+        args: {
+            contextid: contextId,
+            name: name,
+            criteria: criteria,
+            shared: shared,
+        },
+    }]);
+
+    const response = await request[0];
+    if (response.hide === true) {
+        modal.destroy();
+        document.querySelector('#id_assignfeedback_structured_critsetsmanage').disabled = false;
+    }
+    await Notification.alert(response.title, response.body, response.label);
+    spinner.hide();
+};

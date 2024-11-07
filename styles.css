@@ -31,7 +31,7 @@
     margin-right: 6px;
 }
 
-#page-mod-assign-mod #id_assignfeedback_structured_critset + .loading-icon {
-    margin-left: 6px;
-    vertical-align: text-bottom;
+#page-mod-assign-mod #id_assignfeedback_structured_critset ~ .loading-icon,
+#page-mod-assign-mod #id_assignfeedback_structured_critsetsave ~ .loading-icon {
+    margin: 6px;
 }

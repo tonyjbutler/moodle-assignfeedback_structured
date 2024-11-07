@@ -1,0 +1,146 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template assignfeedback_structured/criteriasets_body
+
+    Provides a body template for the structured feedback plugin's criteria set management modal.
+
+    Classes required for JS:
+    * criteria-data
+
+    Data attributes required for JS:
+    * data-context
+    * data-criteriaset-id
+    * data-criteriaset-name
+    * data-set-action
+    * data-toggle
+
+    Context variables required for this template:
+    * contextId The context ID of the current assignment instance.
+    * manage Whether a full management interface is required (otherwise it's read only).
+    * canPublish Whether the current user can publish criteria sets.
+    * ownedSets An array of data objects for all saved criteria sets owned by the current user.
+    * sharedSets An array of data objects for any other available criteria sets.
+
+    Example context (json):
+    {
+        "contextId": 1,
+        "manage": true,
+        "canPublish": false,
+        "ownedSets": [
+            {
+                "id": 1,
+                "name": "Criteria set 1",
+                "shared": true
+            },
+            {
+                "id": 2,
+                "name": "Criteria set 2",
+                "shared": false
+            }
+        ],
+        "sharedSets": [
+            {
+                "id": 1,
+                "name": "Criteria set 3"
+            },
+            {
+                "id": 2,
+                "name": "Criteria set 4"
+            }
+        ]
+    }
+
+}}
+<div class="criteriasets-page" data-context="{{contextId}}">
+    <div class="criteriasets-owned">
+        {{^manage}}
+            <h6>{{#str}} criteriasetsowned, assignfeedback_structured {{/str}}</h6>
+        {{/manage}}
+        {{^ownedSets}}
+            {{#str}} noownedsets, assignfeedback_structured {{/str}}
+        {{/ownedSets}}
+        {{#ownedSets}}
+            <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
+                <div class="float-left">
+                    <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse" role="button"
+                       aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
+                    {{#manage}}
+                        <input type="text" name="criteriaset-newname" size="24" maxlength="64"
+                               title="{{#str}} escapetocancel, assignfeedback_structured {{/str}}">
+                        <a href="#" data-set-action="editname" role="button">
+                            {{#pix}}
+                                t/editstring, core, {{#str}} criteriasetnameedit, assignfeedback_structured {{/str}}
+                            {{/pix}}
+                        </a>
+                        {{> core/loading }}
+                    {{/manage}}
+                </div>
+                <div class="float-right">
+                    {{> core/loading }}
+                    {{#manage}}
+                        {{#canPublish}}
+                            <label>
+                                <input type="checkbox" name="criteriaset-shared" data-set-action="shared"
+                                    {{#shared}} checked {{/shared}}>
+                                {{#str}} criteriasetshared, assignfeedback_structured {{/str}}
+                            </label>
+                        {{/canPublish}}
+                        <button type="button" class="btn btn-primary" data-set-action="delete">
+                            {{#str}} delete {{/str}}
+                        </button>
+                    {{/manage}}
+                    {{^manage}}
+                        <button type="button" class="btn btn-primary" data-set-action="use">
+                            {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
+                        </button>
+                    {{/manage}}
+                </div>
+                <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
+                    {{> core/loading }}
+                </div>
+                <div class="clearer"></div>
+            </div>
+        {{/ownedSets}}
+    </div>
+    {{^manage}}
+        <div class="criteriasets-shared">
+            <h6>{{#str}} criteriasetsshared, assignfeedback_structured {{/str}}</h6>
+            {{^sharedSets}}
+                {{#str}} nosharedsets, assignfeedback_structured {{/str}}
+            {{/sharedSets}}
+            {{#sharedSets}}
+                <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
+                    <div class="float-left">
+                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
+                    </div>
+                    <div class="float-right">
+                        {{> core/loading }}
+                        <button type="button" class="btn btn-primary" data-set-action="use">
+                            {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
+                        </button>
+                    </div>
+                    <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
+                        {{> core/loading }}
+                    </div>
+                    <div class="clearer"></div>
+                </div>
+            {{/sharedSets}}
+        </div>
+    {{/manage}}
+</div>

@@ -26,16 +26,18 @@
     * none
 
     Context variables required for this template:
+    * contextId The context ID of the current assignment instance.
     * canPublish Whether the current user can publish criteria sets.
 
     Example context (json):
     {
+        "contextId": 1,
         "canPublish": true
     }
 
 }}
 <div class="assignfeedback_structured_criteriasetsave">
-    <div class="criteriasetsave-page">
+    <div class="criteriasetsave-page" data-context="{{contextId}}">
         <form>
             <div class="form-group">
                 <label title="{{#str}} criteriasetname_help, assignfeedback_structured {{/str}}">
@@ -56,34 +58,3 @@
         </form>
     </div>
 </div>
-{{#js}}
-    require(['jquery'], function($) {
-        $('.loading-icon').hide();
-
-        // Enable save button only if the name field contains some text.
-        var nameInput = $('[name="criteriaset-name"]'),
-            saveButton = $('[data-action="save"]');
-
-        nameInput.on('keyup blur', function() {
-            if ($(this).val().trim()) {
-                saveButton.prop('disabled', false);
-            } else {
-                saveButton.prop('disabled', true);
-            }
-        });
-
-        // Fix a weird bug when hitting Enter on the name input field.
-        nameInput.on('keydown', function(e) {
-            if (e.keyCode == 13) {
-                e.preventDefault();
-            }
-        });
-
-        // Fix duplicate submission when hitting Enter on the save button.
-        saveButton.on('keydown', function(e) {
-            if (e.keyCode == 13) {
-                e.preventDefault();
-            }
-        });
-    });
-{{/js}}
