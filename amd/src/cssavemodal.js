@@ -43,6 +43,7 @@ export default class CSSaveModal extends Modal {
         super.configure({
             ...modalConfig,
             show: true,
+            isVerticallyCentered: true,
             removeOnClose: true,
         });
     }

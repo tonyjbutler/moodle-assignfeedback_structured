@@ -42,6 +42,7 @@ export default class CSModal extends Modal {
         super.configure({
             ...modalConfig,
             show: true,
+            isVerticallyCentered: true,
             removeOnClose: true,
         });
     }
