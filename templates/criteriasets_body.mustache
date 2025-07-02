@@ -27,7 +27,7 @@
     * data-criteriaset-id
     * data-criteriaset-name
     * data-set-action
-    * data-toggle
+    * data-bs-toggle
 
     Context variables required for this template:
     * contextId The context ID of the current assignment instance.
@@ -76,8 +76,8 @@
         {{/ownedSets}}
         {{#ownedSets}}
             <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
-                <div class="float-left">
-                    <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse" role="button"
+                <div class="float-start">
+                    <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-bs-toggle="collapse" role="button"
                        aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
                     {{#manage}}
                         <input type="text" name="criteriaset-newname" size="24" maxlength="64"
@@ -90,7 +90,7 @@
                         {{> core/loading }}
                     {{/manage}}
                 </div>
-                <div class="float-right">
+                <div class="float-end">
                     {{> core/loading }}
                     {{#manage}}
                         {{#canPublish}}
@@ -125,11 +125,11 @@
             {{/sharedSets}}
             {{#sharedSets}}
                 <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
-                    <div class="float-left">
-                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-toggle="collapse" role="button"
+                    <div class="float-start">
+                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-bs-toggle="collapse" role="button"
                            aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
                     </div>
-                    <div class="float-right">
+                    <div class="float-end">
                         {{> core/loading }}
                         <button type="button" class="btn btn-primary" data-set-action="use">
                             {{#str}} criteriasetuse, assignfeedback_structured {{/str}}

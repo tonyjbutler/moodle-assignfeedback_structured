@@ -6,7 +6,7 @@
     padding: 3px 0;
 }
 
-.criteriasets-page .criteriaset-row a[data-toggle="collapse"]::before {
+.criteriasets-page .criteriaset-row a[data-bs-toggle="collapse"]::before {
     background-image: url([[pix:core|t/expanded]]);
     background-repeat: no-repeat;
     content: '';
@@ -17,7 +17,7 @@
     height: 16px;
 }
 
-.criteriasets-page .criteriaset-row a[data-toggle="collapse"].collapsed::before {
+.criteriasets-page .criteriaset-row a[data-bs-toggle="collapse"].collapsed::before {
     background-image: url([[pix:core|t/collapsed]]);
 }
 

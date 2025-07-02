@@ -131,7 +131,7 @@ const refreshSets = async(modal, contextId, manage, canPublish) => {
     });
 
     // Get criteria data when expanded for the first time.
-    const criteriaToggle = modalBody.find('[data-toggle="collapse"][href^="#criteria-data-"]');
+    const criteriaToggle = modalBody.find('[data-bs-toggle="collapse"][href^="#criteria-data-"]');
     criteriaToggle.on('click', async function() {
         if (this.classList.contains('collapsed')) {
             const set = this.parentNode.parentNode;
@@ -150,7 +150,7 @@ const refreshSets = async(modal, contextId, manage, canPublish) => {
             e.preventDefault();
             const set = this.parentNode.parentNode,
                 setName = set.dataset.criteriasetName,
-                nameElement = this.parentNode.querySelector('[data-toggle="collapse"]'),
+                nameElement = this.parentNode.querySelector('[data-bs-toggle="collapse"]'),
                 nameInput = this.parentNode.querySelector('[name="criteriaset-newname"]');
 
             // Hide name and button and show input field.
@@ -332,7 +332,7 @@ const getCriteria = async(set) => {
  * @return {Promise} A promise.
  */
  const nameChangeHandler = async function() {
-    const nameElement = this.parentNode.querySelector('[data-toggle="collapse"]'),
+    const nameElement = this.parentNode.querySelector('[data-bs-toggle="collapse"]'),
         editButton = this.parentNode.querySelector('[data-set-action="editname"]'),
         set = this.parentNode.parentNode,
         setName = set.dataset.criteriasetName,
