@@ -77,8 +77,8 @@
         {{#ownedSets}}
             <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                 <div class="float-start">
-                    <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-bs-toggle="collapse" role="button"
-                       aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
+                    <a href="#criteria-data-{{id}}" class="collapsed" data-bs-toggle="collapse" role="button"
+                       aria-expanded="false" aria-controls="criteria-data-{{id}}">{{name}}</a>
                     {{#manage}}
                         <input type="text" name="criteriaset-newname" size="24" maxlength="64"
                                title="{{#str}} escapetocancel, assignfeedback_structured {{/str}}">
@@ -87,8 +87,8 @@
                                 t/editstring, core, {{#str}} criteriasetnameedit, assignfeedback_structured {{/str}}
                             {{/pix}}
                         </a>
-                        {{> core/loading }}
                     {{/manage}}
+                    {{> core/loading }}
                 </div>
                 <div class="float-end">
                     {{> core/loading }}
@@ -110,9 +110,7 @@
                         </button>
                     {{/manage}}
                 </div>
-                <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
-                    {{> core/loading }}
-                </div>
+                <div id="criteria-data-{{id}}" class="criteria-data collapse"></div>
                 <div class="clearer"></div>
             </div>
         {{/ownedSets}}
@@ -126,8 +124,9 @@
             {{#sharedSets}}
                 <div class="criteriaset-row" data-criteriaset-id="{{id}}" data-criteriaset-name="{{name}}">
                     <div class="float-start">
-                        <a href="#criteria-data-{{manage}}-{{id}}" class="collapsed" data-bs-toggle="collapse" role="button"
-                           aria-expanded="false" aria-controls="criteria-data-{{manage}}-{{id}}">{{name}}</a>
+                        <a href="#criteria-data-{{id}}" class="collapsed" data-bs-toggle="collapse" role="button"
+                           aria-expanded="false" aria-controls="criteria-data-{{id}}">{{name}}</a>
+                        {{> core/loading }}
                     </div>
                     <div class="float-end">
                         {{> core/loading }}
@@ -135,9 +134,7 @@
                             {{#str}} criteriasetuse, assignfeedback_structured {{/str}}
                         </button>
                     </div>
-                    <div id="criteria-data-{{manage}}-{{id}}" class="criteria-data collapse">
-                        {{> core/loading }}
-                    </div>
+                    <div id="criteria-data-{{id}}" class="criteria-data collapse"></div>
                     <div class="clearer"></div>
                 </div>
             {{/sharedSets}}

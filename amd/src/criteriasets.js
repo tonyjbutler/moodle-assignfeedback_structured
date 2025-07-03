@@ -133,9 +133,9 @@ const refreshSets = async(modal, contextId, manage, canPublish) => {
     // Get criteria data when expanded for the first time.
     const criteriaToggle = modalBody.find('[data-bs-toggle="collapse"][href^="#criteria-data-"]');
     criteriaToggle.on('click', async function() {
-        if (this.classList.contains('collapsed')) {
+        if (!this.classList.contains('collapsed')) {
             const set = this.parentNode.parentNode;
-            const spinner = set.querySelector('.criteria-data').querySelector('.loading-icon');
+            const spinner = this.parentNode.querySelector('.loading-icon');
             spinner.style.display = 'initial';
             await getCriteria(set);
             spinner.style.display = 'none';
