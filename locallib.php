@@ -141,6 +141,21 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
+     * Check whether any configured criteria have feedback associated with them.
+     *
+     * @return bool True if any feedback exists.
+     */
+    private function has_feedback() {
+        foreach ($this->get_criteria() as $key => $criterion) {
+            if ($this->is_criterion_used($key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Return all saved criteria sets that the current user can manage (or copy into this assignment instance).
      *
      * @param bool $includeshared Include shared criteria sets owned by other users (for copying only).
@@ -150,11 +165,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
         global $DB, $USER;
 
         // Return an error if user is copying, and any criteria are configured and have feedback already.
-        if (($criteria = $this->get_criteria()) && $includeshared) {
-            foreach ($criteria as $key => $criterion) {
-                if ($this->is_criterion_used($key)) {
-                    return get_string('criteriaused', 'assignfeedback_structured');
-                }
+        if ($includeshared) {
+            if ($this->has_feedback()) {
+                return get_string('criteriaused', 'assignfeedback_structured');
             }
         }
 
@@ -553,6 +566,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
             if ($criteria != $this->get_criteria()) {
                 $this->set_config('criteria', json_encode($criteria));
             }
+            $this->enable();
         } else {
             // If no criteria are configured, unset the config and disable the plugin instance.
             if ($this->get_criteria()) {
@@ -574,11 +588,17 @@ class assign_feedback_structured extends assign_feedback_plugin {
         global $PAGE;
 
         $mform->addElement('header', 'assignfeedback_structured_criteria', get_string('criteria', 'assignfeedback_structured'));
+        $mform->addElement('button', 'assignfeedback_structured_enable', get_string('enable', 'assignfeedback_structured'));
+        $mform->hideIf('assignfeedback_structured_enable', 'assignfeedback_structured_enabled', 'checked');
+        $mform->addElement('button', 'assignfeedback_structured_disable', get_string('disable', 'assignfeedback_structured'));
+        $mform->hideIf('assignfeedback_structured_disable', 'assignfeedback_structured_enabled', 'notchecked');
+        $PAGE->requires->js_call_amd('assignfeedback_structured/criteriaenable', 'toggle');
 
         $criteriasetbutton = $mform->addElement('button', 'assignfeedback_structured_critset',
                 get_string('criteriasetusesaved', 'assignfeedback_structured'));
         $criteriasetbutton->setLabel(get_string('criteriaset', 'assignfeedback_structured'));
         $mform->addHelpButton('assignfeedback_structured_critset', 'criteriaset', 'assignfeedback_structured');
+        $mform->hideIf('assignfeedback_structured_critset', 'assignfeedback_structured_enabled', 'notchecked');
 
         // Check if there are any saved criteria sets that can be used here.
         if (is_array($criteriasets = $this->get_criteria_sets_for_user(true))) {
@@ -589,8 +609,13 @@ class assign_feedback_structured extends assign_feedback_plugin {
             ], $criteriasets);
             $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasets', 'init', $params);
         } else {
-            $mform->updateElementAttr('assignfeedback_structured_critset',
-                    ['title' => $criteriasets, 'disabled' => 'disabled']);
+            // This means get_criteria_sets_for_user() has returned an error, indicating existing feedback.
+            $mform->updateElementAttr('assignfeedback_structured_critset', ['title' => $criteriasets, 'disabled' => 'disabled']);
+            $mform->removeElement('assignfeedback_structured_disable');
+            $PAGE->requires->js_call_amd('assignfeedback_structured/criteriaenable', 'disable');
+            // For some reason a hidden input isn't created automatically for disabled 'subplugin enabled' checkboxes.
+            $mform->addElement('hidden', 'assignfeedback_structured_enabled', '1');
+            $mform->setType('assignfeedback_structured_enabled', PARAM_INT);
             $criterialocked = true;
         }
 
@@ -601,11 +626,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 get_string('criteriondesc', 'assignfeedback_structured'), 'rows="4" cols="64"');
 
         if ($criteria = $this->get_criteria()) {
-            $mform->setExpanded('assignfeedback_structured_criteria');
-            if (!empty($criterialocked)) {
-                $critrepeats = count($criteria);
-            } else {
+            if (empty($criterialocked)) {
+                $mform->setExpanded('assignfeedback_structured_criteria');
                 $critrepeats = count($criteria) + 2;
+            } else {
+                $critrepeats = count($criteria);
             }
         } else {
             $critrepeats = 5;
@@ -615,11 +640,16 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $critoptions['assignfeedback_structured_critname']['rule'] = [null, 'maxlength', 255, 'client'];
         $critoptions['assignfeedback_structured_critname']['type'] = PARAM_TEXT;
         $critoptions['assignfeedback_structured_critdesc']['type'] = PARAM_TEXT;
+        if (empty($criterialocked)) {
+            $critoptions['assignfeedback_structured_critname']['hideif'] = ['assignfeedback_structured_enabled', 'notchecked'];
+            $critoptions['assignfeedback_structured_critdesc']['hideif'] = ['assignfeedback_structured_enabled', 'notchecked'];
+        }
 
         $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'assignfeedback_structured_repeats',
                 'assignfeedback_structured_critfieldsadd', 3, get_string('criteriafieldsadd', 'assignfeedback_structured'), true);
         $lastfield = 'assignfeedback_structured_critname[' . ($critfields - 1) . ']';
         $mform->disabledIf('assignfeedback_structured_critfieldsadd', $lastfield, 'eq', '');
+        $mform->hideIf('assignfeedback_structured_critfieldsadd', 'assignfeedback_structured_enabled', 'notchecked');
         $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
         if (!empty($criterialocked)) {
             $mform->updateElementAttr('assignfeedback_structured_critfieldsadd',
@@ -634,6 +664,9 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $mform->addHelpButton('assignfeedback_structured_critsetsave', 'criteriasetsave', 'assignfeedback_structured');
             $mform->setAdvanced('assignfeedback_structured_critsetsave');
             $mform->disabledIf('assignfeedback_structured_critsetsave', 'assignfeedback_structured_critname[0]', 'eq', '');
+            if (empty($criterialocked)) {
+                $mform->hideIf('assignfeedback_structured_critsetsave', 'assignfeedback_structured_enabled', 'notchecked');
+            }
             $params = [
                 'contextid'  => $PAGE->context->id,
                 'canpublish' => has_capability('assignfeedback/structured:publishcriteriasets', $PAGE->context),
@@ -730,6 +763,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
      *         'type'       - PARAM_* type.
      *         'helpbutton' - array containing the helpbutton params.
      *         'disabledif' - array containing the disabledIf() arguments after the element name.
+     *         'hideif'     - array containing the hideIf() arguments after the element name.
      *         'rule'       - array containing the addRule arguments after the element name.
      *         'expanded'   - whether this section of the form should be expanded by default. (Name be a header element.)
      *         'advanced'   - whether this element is hidden by 'Show more ...'.
@@ -800,6 +834,16 @@ class assign_feedback_structured extends assign_feedback_plugin {
                             }
                             $params = array_merge([$realelementname], $params);
                             call_user_func_array([&$mform, 'disabledIf'], $params);
+                            break;
+                        case 'hideif':
+                            foreach ($namecloned as $num => $name) {
+                                if ($params[0] == $name) {
+                                    $params[0] = $params[0] . "[$i]";
+                                    break;
+                                }
+                            }
+                            $params = array_merge([$realelementname], $params);
+                            call_user_func_array([&$mform, 'hideIf'], $params);
                             break;
                         case 'rule':
                             if (is_string($params)) {
@@ -1078,21 +1122,29 @@ class assign_feedback_structured extends assign_feedback_plugin {
     }
 
     /**
-     * Automatically enable the structured feedback plugin.
+     * Automatically enable the structured feedback plugin if there is already feedback,
+     * and disable it if there are no criteria defined.
      *
-     * @return bool True.
+     * @return bool
      */
     public function is_enabled() {
-        return true;
+        if ($this->has_feedback()) {
+            return true;
+        }
+        if (empty($this->get_criteria_config())) {
+            return false;
+        }
+
+        return parent::is_enabled();
     }
 
     /**
-     * Automatically hide the checkbox for the structured feedback plugin.
+     * Display a checkbox to enable/disable the structured feedback plugin.
      *
-     * @return bool False.
+     * @return bool True.
      */
     public function is_configurable() {
-        return false;
+        return true;
     }
 
     /**

@@ -25,6 +25,9 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+$settings->add(new admin_setting_configcheckbox('assignfeedback_structured/default',
+        get_string('default', 'assignfeedback_structured'),
+        get_string('default_help', 'assignfeedback_structured'), 1));
 $settings->add(new admin_setting_configtext('assignfeedback_structured/defaultcritname',
         get_string('defaultcritname', 'assignfeedback_structured'),
         get_string('defaultcritname_help', 'assignfeedback_structured'), '', PARAM_TEXT));
