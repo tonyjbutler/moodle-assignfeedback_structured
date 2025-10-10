@@ -34,7 +34,6 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 class restore_assignfeedback_structured_subplugin extends restore_subplugin {
-
     /**
      * Returns the paths to be handled by the subplugin at assignment level.
      * @return array

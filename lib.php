@@ -35,13 +35,14 @@
  * @return bool false if file not found, does not return if found - just send the file
  */
 function assignfeedback_structured_pluginfile(
-        $course,
-        $cm,
-        context $context,
-        $filearea,
-        $args,
-        $forcedownload,
-        array $options = []) {
+    $course,
+    $cm,
+    context $context,
+    $filearea,
+    $args,
+    $forcedownload,
+    array $options = []
+) {
     global $CFG, $DB;
 
     require_once($CFG->dirroot . '/mod/assign/locallib.php');

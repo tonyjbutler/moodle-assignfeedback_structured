@@ -38,7 +38,6 @@ define('ASSIGNFEEDBACK_STRUCTURED_FILEAREA', 'feedback');
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 class assign_feedback_structured extends assign_feedback_plugin {
-
     /**
      * @var context The assignment context for this plugin instance.
      */
@@ -274,8 +273,10 @@ class assign_feedback_structured extends assign_feedback_plugin {
 
         // Make sure user has the appropriate permissions to delete.
         if (!has_capability('moodle/site:config', context_system::instance())) {
-            if ($criteriaset->owner != $USER->id ||
-                    !has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)) {
+            if (
+                $criteriaset->owner != $USER->id ||
+                    !has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)
+            ) {
                 return false;
             }
         }
@@ -353,8 +354,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $fields = [];
         foreach ($criteria as $criterion) {
             if (!empty($criterion->description)) {
-                $description = get_string('criterionheader', 'assignfeedback_structured',
-                        ['name' => $criterion->name, 'desc' => $criterion->description]);
+                $description = get_string(
+                    'criterionheader',
+                    'assignfeedback_structured',
+                    ['name' => $criterion->name, 'desc' => $criterion->description]
+                );
             } else {
                 $description = $criterion->name;
             }
@@ -594,8 +598,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $mform->hideIf('assignfeedback_structured_disable', 'assignfeedback_structured_enabled', 'notchecked');
         $PAGE->requires->js_call_amd('assignfeedback_structured/criteriaenable', 'toggle');
 
-        $criteriasetbutton = $mform->addElement('button', 'assignfeedback_structured_critset',
-                get_string('criteriasetusesaved', 'assignfeedback_structured'));
+        $criteriasetbutton = $mform->addElement(
+            'button',
+            'assignfeedback_structured_critset',
+            get_string('criteriasetusesaved', 'assignfeedback_structured')
+        );
         $criteriasetbutton->setLabel(get_string('criteriaset', 'assignfeedback_structured'));
         $mform->addHelpButton('assignfeedback_structured_critset', 'criteriaset', 'assignfeedback_structured');
         $mform->hideIf('assignfeedback_structured_critset', 'assignfeedback_structured_enabled', 'notchecked');
@@ -620,10 +627,18 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $critelements = [];
-        $critelements[] = $mform->createElement('text', 'assignfeedback_structured_critname',
-                get_string('criterionname', 'assignfeedback_structured'), ['size' => '64', 'maxlength' => '255']);
-        $critelements[] = $mform->createElement('textarea', 'assignfeedback_structured_critdesc',
-                get_string('criteriondesc', 'assignfeedback_structured'), 'rows="4" cols="64"');
+        $critelements[] = $mform->createElement(
+            'text',
+            'assignfeedback_structured_critname',
+            get_string('criterionname', 'assignfeedback_structured'),
+            ['size' => '64', 'maxlength' => '255']
+        );
+        $critelements[] = $mform->createElement(
+            'textarea',
+            'assignfeedback_structured_critdesc',
+            get_string('criteriondesc', 'assignfeedback_structured'),
+            'rows="4" cols="64"'
+        );
 
         if ($criteria = $this->get_criteria()) {
             if (empty($criterialocked)) {
@@ -645,21 +660,35 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $critoptions['assignfeedback_structured_critdesc']['hideif'] = ['assignfeedback_structured_enabled', 'notchecked'];
         }
 
-        $critfields = $this->repeat_elements($mform, $critelements, $critrepeats, $critoptions, 'assignfeedback_structured_repeats',
-                'assignfeedback_structured_critfieldsadd', 3, get_string('criteriafieldsadd', 'assignfeedback_structured'), true);
+        $critfields = $this->repeat_elements(
+            $mform,
+            $critelements,
+            $critrepeats,
+            $critoptions,
+            'assignfeedback_structured_repeats',
+            'assignfeedback_structured_critfieldsadd',
+            3,
+            get_string('criteriafieldsadd', 'assignfeedback_structured'),
+            true
+        );
         $lastfield = 'assignfeedback_structured_critname[' . ($critfields - 1) . ']';
         $mform->disabledIf('assignfeedback_structured_critfieldsadd', $lastfield, 'eq', '');
         $mform->hideIf('assignfeedback_structured_critfieldsadd', 'assignfeedback_structured_enabled', 'notchecked');
         $mform->addHelpButton('assignfeedback_structured_critname[0]', 'criteria', 'assignfeedback_structured');
         if (!empty($criterialocked)) {
-            $mform->updateElementAttr('assignfeedback_structured_critfieldsadd',
-                    ['title' => get_string('criteriaused', 'assignfeedback_structured'), 'disabled' => 'disabled']);
+            $mform->updateElementAttr(
+                'assignfeedback_structured_critfieldsadd',
+                ['title' => get_string('criteriaused', 'assignfeedback_structured'), 'disabled' => 'disabled']
+            );
         }
 
         if (has_capability('assignfeedback/structured:manageowncriteriasets', $PAGE->context)) {
             // Enable users to save criteria sets for use in other assignments.
-            $criteriasetsavebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsave',
-                    get_string('criteriasetsave', 'assignfeedback_structured'));
+            $criteriasetsavebutton = $mform->addElement(
+                'button',
+                'assignfeedback_structured_critsetsave',
+                get_string('criteriasetsave', 'assignfeedback_structured')
+            );
             $criteriasetsavebutton->setLabel(get_string('criteriasetsave', 'assignfeedback_structured'));
             $mform->addHelpButton('assignfeedback_structured_critsetsave', 'criteriasetsave', 'assignfeedback_structured');
             $mform->setAdvanced('assignfeedback_structured_critsetsave');
@@ -674,8 +703,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
             $PAGE->requires->js_call_amd('assignfeedback_structured/criteriasetsave', 'init', $params);
 
             // Enable users to manage their saved criteria sets.
-            $criteriasetsmanagebutton = $mform->addElement('button', 'assignfeedback_structured_critsetsmanage',
-                    get_string('criteriasetsmanage', 'assignfeedback_structured'));
+            $criteriasetsmanagebutton = $mform->addElement(
+                'button',
+                'assignfeedback_structured_critsetsmanage',
+                get_string('criteriasetsmanage', 'assignfeedback_structured')
+            );
             $criteriasetsmanagebutton->setLabel(get_string('criteriasetsmanage', 'assignfeedback_structured'));
             $mform->addHelpButton('assignfeedback_structured_critsetsmanage', 'criteriasetsmanage', 'assignfeedback_structured');
             $mform->setAdvanced('assignfeedback_structured_critsetsmanage');
@@ -736,7 +768,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $namecloned[] = $name;
 
         if (!empty($name)) {
-            $elementclone->setName($name."[$i]");
+            $elementclone->setName($name . "[$i]");
         }
 
         if (is_a($elementclone, 'HTML_QuickForm_header')) {
@@ -774,8 +806,17 @@ class assign_feedback_structured extends assign_feedback_plugin {
      * @param bool $addbuttoninside if true, don't call closeHeaderBefore($addfieldsname). Default false.
      * @return int no of repeats of element in this page
      */
-    private function repeat_elements(&$mform, $elementobjs, $repeats, $options, $repeathiddenname, $addfieldsname, $addfieldsno = 5,
-                                     $addstring = null, $addbuttoninside = false) {
+    private function repeat_elements(
+        &$mform,
+        $elementobjs,
+        $repeats,
+        $options,
+        $repeathiddenname,
+        $addfieldsname,
+        $addfieldsno = 5,
+        $addstring = null,
+        $addbuttoninside = false
+    ) {
         if ($addstring === null) {
             $addstring = get_string('addfields', 'form', $addfieldsno);
         } else {
@@ -817,7 +858,7 @@ class assign_feedback_structured extends assign_feedback_plugin {
                     $realelementname = $elementname . "[$i]";
                 }
                 foreach ($elementoptions as $option => $params) {
-                    switch ($option){
+                    switch ($option) {
                         case 'default':
                             $mform->setDefault($realelementname, str_replace('{$a}', $i + 1, $params));
                             break;
@@ -918,8 +959,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
                 $grade->id
             );
-            $editorlabel = get_string('criteriontitle', 'assignfeedback_structured',
-                    ['name' => $criterion->name, 'desc' => $criterion->description]);
+            $editorlabel = get_string(
+                'criteriontitle',
+                'assignfeedback_structured',
+                ['name' => $criterion->name, 'desc' => $criterion->description]
+            );
             $mform->addElement('editor', $editor, $editorlabel, null, $this->get_editor_options());
 
             // Remove any merged draft files belonging to other editors from the current editor's draft area.
@@ -1003,8 +1047,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
         foreach ($criteria as $key => $criterion) {
             if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                 $desc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
-                $crit = get_string('criteriontitle', 'assignfeedback_structured',
-                        ['name' => format_string($criterion->name), 'desc' => '']);
+                $crit = get_string(
+                    'criteriontitle',
+                    'assignfeedback_structured',
+                    ['name' => format_string($criterion->name), 'desc' => '']
+                );
                 $commenttext = $this->rewrite_feedback_comments_urls($feedbackcomments[$key]->commenttext, $grade->id);
                 $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat, ['context' => $this->get_context()]);
                 $text .= html_writer::div($crit, '', ['title' => $desc]);
@@ -1036,8 +1083,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
         foreach ($criteria as $key => $criterion) {
             if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                 $desc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
-                $crit = get_string('criteriontitle', 'assignfeedback_structured',
-                        ['name' => format_string($criterion->name), 'desc' => $desc]);
+                $crit = get_string(
+                    'criteriontitle',
+                    'assignfeedback_structured',
+                    ['name' => format_string($criterion->name), 'desc' => $desc]
+                );
                 $commenttext = $this->rewrite_feedback_comments_urls($feedbackcomments[$key]->commenttext, $grade->id);
                 $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat, ['context' => $this->get_context()]);
                 $text .= html_writer::div($crit);
@@ -1065,16 +1115,25 @@ class assign_feedback_structured extends assign_feedback_plugin {
         $files = [];
 
         if ($feedbackcomments) {
-            $formattedtext = html_writer::tag('h2', get_string('pluginname', 'assignfeedback_structured'),
-                    ['style' => 'font-family: Arial, sans-serif;']);
+            $formattedtext = html_writer::tag(
+                'h2',
+                get_string('pluginname', 'assignfeedback_structured'),
+                ['style' => 'font-family: Arial, sans-serif;']
+            );
             foreach ($criteria as $key => $criterion) {
                 if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                     $commenttext = $this->rewrite_feedback_comments_urls($feedbackcomments[$key]->commenttext, $grade->id);
                     $description = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
-                    $comment = format_text($commenttext, $feedbackcomments[$key]->commentformat,
-                            ['context' => $this->get_context()]);
-                    $formattedtext .= html_writer::tag('h3', format_string($criterion->name),
-                            ['style' => 'font-family: Arial, sans-serif;']);
+                    $comment = format_text(
+                        $commenttext,
+                        $feedbackcomments[$key]->commentformat,
+                        ['context' => $this->get_context()]
+                    );
+                    $formattedtext .= html_writer::tag(
+                        'h3',
+                        format_string($criterion->name),
+                        ['style' => 'font-family: Arial, sans-serif;']
+                    );
                     $formattedtext .= html_writer::tag('div', $description, ['style' => 'font-style: italic;']);
                     $formattedtext .= html_writer::tag('p', $comment);
                 }
@@ -1087,8 +1146,14 @@ class assign_feedback_structured extends assign_feedback_plugin {
         }
 
         $fs = get_file_storage();
-        $fsfiles = $fs->get_area_files($this->get_context()->id, ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
-                ASSIGNFEEDBACK_STRUCTURED_FILEAREA, $grade->id, 'timemodified', false);
+        $fsfiles = $fs->get_area_files(
+            $this->get_context()->id,
+            ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+            ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+            $grade->id,
+            'timemodified',
+            false
+        );
         foreach ($fsfiles as $file) {
             $files[$file->get_filename()] = $file;
         }
@@ -1199,10 +1264,16 @@ class assign_feedback_structured extends assign_feedback_plugin {
         foreach ($criteria as $key => $criterion) {
             if (!empty($feedbackcomments[$key]) && !empty($feedbackcomments[$key]->commenttext)) {
                 $desc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $this->get_context()]);
-                $crit = get_string('criteriontitle', 'assignfeedback_structured',
-                        ['name' => format_string($criterion->name), 'desc' => $desc]);
-                $comment = format_text($feedbackcomments[$key]->commenttext, $feedbackcomments[$key]->commentformat,
-                        ['context' => $this->get_context()]);
+                $crit = get_string(
+                    'criteriontitle',
+                    'assignfeedback_structured',
+                    ['name' => format_string($criterion->name), 'desc' => $desc]
+                );
+                $comment = format_text(
+                    $feedbackcomments[$key]->commenttext,
+                    $feedbackcomments[$key]->commentformat,
+                    ['context' => $this->get_context()]
+                );
                 $text .= html_writer::div($crit);
                 $text .= html_writer::div($comment, 'card p-1');
             }
@@ -1242,8 +1313,11 @@ class assign_feedback_structured extends assign_feedback_plugin {
                 'text' => new external_value(PARAM_RAW, 'The comment text for criterion: ' . $criterion->name),
                 'format' => new external_value(PARAM_INT, 'The comment format for criterion: ' . $criterion->name),
             ];
-            $editorstructure = new external_single_structure($editorparams, 'Criterion ' . $key . ' editor structure',
-                    VALUE_OPTIONAL);
+            $editorstructure = new external_single_structure(
+                $editorparams,
+                'Criterion ' . $key . ' editor structure',
+                VALUE_OPTIONAL
+            );
             $editors['assignfeedbackstructured' . $key . '_editor'] = $editorstructure;
         }
 

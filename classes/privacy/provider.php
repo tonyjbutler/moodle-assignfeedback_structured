@@ -30,9 +30,12 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 
 use core_privacy\local\metadata\collection;
-use core_privacy\local\request\writer;
 use core_privacy\local\request\contextlist;
+use core_privacy\local\request\userlist;
+use core_privacy\local\request\writer;
 use mod_assign\privacy\assign_plugin_request_data;
+use mod_assign\privacy\assignfeedback_provider;
+use mod_assign\privacy\assignfeedback_user_provider;
 use mod_assign\privacy\useridlist;
 
 /**
@@ -43,13 +46,9 @@ use mod_assign\privacy\useridlist;
  * @copyright 2018 Lancaster University {@link http://www.lancaster.ac.uk/}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements
-        \core_privacy\local\metadata\provider,
-        \mod_assign\privacy\assignfeedback_provider,
-        \mod_assign\privacy\assignfeedback_user_provider {
-
+class provider implements assignfeedback_provider, assignfeedback_user_provider, \core_privacy\local\metadata\provider {
     /**
-     * Return meta data about this plugin.
+     * Return metadata about this plugin.
      *
      * @param  collection $collection A list of information to add to.
      * @return collection Return the collection after adding to it.
@@ -92,9 +91,9 @@ class provider implements
      * If you have tables that contain userids and you can generate entries in your tables without creating an
      * entry in the assign_grades table then please fill in this method.
      *
-     * @param  \core_privacy\local\request\userlist $userlist The userlist object
+     * @param  userlist $userlist The userlist object
      */
-    public static function get_userids_from_context(\core_privacy\local\request\userlist $userlist) {
+    public static function get_userids_from_context(userlist $userlist) {
         // Not required.
     }
 
@@ -126,11 +125,18 @@ class provider implements
                     $data = new \stdClass();
                     $data->criterionname = format_string($criterion->name);
                     $data->criteriondesc = format_text($criterion->description, FORMAT_PLAIN, ['context' => $context]);
-                    $data->commenttext = format_text($comments[$key]->commenttext, $comments[$key]->commentformat,
-                            ['context' => $context]);
+                    $data->commenttext = format_text(
+                        $comments[$key]->commenttext,
+                        $comments[$key]->commentformat,
+                        ['context' => $context]
+                    );
                     writer::with_context($context)->export_data($currentpath, $data);
-                    writer::with_context($context)->export_area_files($currentpath, ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
-                        ASSIGNFEEDBACK_STRUCTURED_FILEAREA, $gradeid);
+                    writer::with_context($context)->export_area_files(
+                        $currentpath,
+                        ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+                        ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+                        $gradeid
+                    );
                 }
             }
         }
@@ -144,8 +150,11 @@ class provider implements
     public static function delete_feedback_for_context(assign_plugin_request_data $requestdata) {
         $assign = $requestdata->get_assign();
         $fs = get_file_storage();
-        $fs->delete_area_files($requestdata->get_context()->id, ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
-            ASSIGNFEEDBACK_STRUCTURED_FILEAREA);
+        $fs->delete_area_files(
+            $requestdata->get_context()->id,
+            ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+            ASSIGNFEEDBACK_STRUCTURED_FILEAREA
+        );
 
         $plugin = $assign->get_plugin_by_type('assignfeedback', 'structured');
         $plugin->delete_instance();
@@ -160,8 +169,12 @@ class provider implements
         global $DB;
 
         $fs = get_file_storage();
-        $fs->delete_area_files($requestdata->get_context()->id, ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
-            ASSIGNFEEDBACK_STRUCTURED_FILEAREA, $requestdata->get_pluginobject()->id);
+        $fs->delete_area_files(
+            $requestdata->get_context()->id,
+            ASSIGNFEEDBACK_STRUCTURED_COMPONENT,
+            ASSIGNFEEDBACK_STRUCTURED_FILEAREA,
+            $requestdata->get_pluginobject()->id
+        );
 
         $DB->delete_records('assignfeedback_structured', ['assignment' => $requestdata->get_assignid(),
                 'grade' => $requestdata->get_pluginobject()->id]);
@@ -183,7 +196,7 @@ class provider implements
             return;
         }
 
-        list($sql, $params) = $DB->get_in_or_equal($deletedata->get_gradeids(), SQL_PARAMS_NAMED);
+        [$sql, $params] = $DB->get_in_or_equal($deletedata->get_gradeids(), SQL_PARAMS_NAMED);
 
         $fs = new \file_storage();
         $fs->delete_area_files_select(
@@ -197,5 +210,4 @@ class provider implements
         $params['assignment'] = $deletedata->get_assignid();
         $DB->delete_records_select('assignfeedback_structured', "assignment = :assignment AND grade $sql", $params);
     }
-
 }

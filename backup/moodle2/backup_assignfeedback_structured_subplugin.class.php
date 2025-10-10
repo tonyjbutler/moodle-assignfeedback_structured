@@ -34,7 +34,6 @@
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 class backup_assignfeedback_structured_subplugin extends backup_subplugin {
-
     /**
      * Returns the subplugin information to attach to feedback element.
      * @return backup_subplugin_element
@@ -45,8 +44,11 @@ class backup_assignfeedback_structured_subplugin extends backup_subplugin {
         $subplugin = $this->get_subplugin_element();
         $subpluginwrapper = new backup_nested_element($this->get_recommended_name());
         $subpluginelementcomments = new backup_nested_element('feedback_structured');
-        $subpluginelementcomment = new backup_nested_element('structured_comment', ['id'],
-                ['grade', 'criterion', 'commenttext', 'commentformat']);
+        $subpluginelementcomment = new backup_nested_element(
+            'structured_comment',
+            ['id'],
+            ['grade', 'criterion', 'commenttext', 'commentformat']
+        );
 
         // Connect XML elements into the tree.
         $subplugin->add_child($subpluginwrapper);

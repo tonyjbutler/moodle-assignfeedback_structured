@@ -36,7 +36,6 @@ require_once($CFG->libdir . '/externallib.php');
  * @author    Tony Butler <a.butler4@lancaster.ac.uk>
  */
 class assignfeedback_structured_external extends external_api {
-
     /**
      * Return a description of the parameters for the get_criteria method.
      *
@@ -89,8 +88,10 @@ class assignfeedback_structured_external extends external_api {
                 [
                     'name'        => new external_value(PARAM_TEXT, 'The criterion name'),
                     'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL),
-                ], 'The data for a single criterion'
-            ), 'The criteria data'
+                ],
+                'The data for a single criterion'
+            ),
+            'The criteria data'
         );
     }
 
@@ -157,16 +158,22 @@ class assignfeedback_structured_external extends external_api {
                             'id'     => new external_value(PARAM_TEXT, 'The criteria set ID'),
                             'name'   => new external_value(PARAM_RAW, 'The criteria set name'),
                             'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set is shared'),
-                        ], 'The data for a single owned criteria set'
-                    ), 'The data for any owned criteria sets', VALUE_OPTIONAL
+                        ],
+                        'The data for a single owned criteria set'
+                    ),
+                    'The data for any owned criteria sets',
+                    VALUE_OPTIONAL
                 ),
                 'sharedsets' => new external_multiple_structure(
                     new external_single_structure(
                         [
                             'id'   => new external_value(PARAM_TEXT, 'The criteria set ID'),
                             'name' => new external_value(PARAM_RAW, 'The criteria set name'),
-                        ], 'The data for a single shared criteria set'
-                    ), 'The data for any shared criteria sets', VALUE_OPTIONAL
+                        ],
+                        'The data for a single shared criteria set'
+                    ),
+                    'The data for any shared criteria sets',
+                    VALUE_OPTIONAL
                 ),
             ]
         );
@@ -187,8 +194,10 @@ class assignfeedback_structured_external extends external_api {
                         [
                             'name'        => new external_value(PARAM_TEXT, 'The criterion name'),
                             'description' => new external_value(PARAM_RAW, 'The criterion description', VALUE_OPTIONAL),
-                        ], 'The data for a single criterion'
-                    ), 'The criteria data'
+                        ],
+                        'The data for a single criterion'
+                    ),
+                    'The criteria data'
                 ),
                 'shared'    => new external_value(PARAM_BOOL, 'Whether the new criteria set should be shared'),
             ]
@@ -302,7 +311,8 @@ class assignfeedback_structured_external extends external_api {
                     [
                         'name'   => new external_value(PARAM_TEXT, 'The new name for the criteria set', VALUE_OPTIONAL),
                         'shared' => new external_value(PARAM_BOOL, 'Whether the criteria set should be shared', VALUE_OPTIONAL),
-                    ], 'The key/value pairs of attributes to be updated'
+                    ],
+                    'The key/value pairs of attributes to be updated'
                 ),
             ]
         );
@@ -462,5 +472,4 @@ class assignfeedback_structured_external extends external_api {
     public static function delete_criteriaset_returns() {
         return new external_value(PARAM_BOOL, 'Whether or not the criteria set was successfully deleted');
     }
-
 }
