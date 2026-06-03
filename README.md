@@ -93,17 +93,17 @@ Installing from the Git repository (recommended if you installed Moodle
 from Git):
 
 Follow the instructions at
-https://docs.moodle.org/500/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
-e.g. for the Moodle 5.0.x code:
+https://docs.moodle.org/501/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository,
+e.g. for the Moodle 5.1.x code:
 
     $ cd /path/to/your/moodle/
-    $ cd mod/assign/feedback/
+    $ cd public/mod/assign/feedback/
     $ git clone https://github.com/tonyjbutler/moodle-assignfeedback_structured.git structured
     $ cd structured/
-    $ git checkout -b MOODLE_500_STABLE origin/MOODLE_500_STABLE
+    $ git checkout -b MOODLE_501_STABLE origin/MOODLE_501_STABLE
     $ git branch -d master
     $ cd /path/to/your/moodle/
-    $ echo /mod/assign/feedback/structured/ >> .git/info/exclude
+    $ echo public/mod/assign/feedback/structured/ >> .git/info/exclude
 
 
 Installing from a zip archive downloaded from
@@ -112,7 +112,7 @@ https://moodle.org/plugins/pluginversions.php?plugin=assignfeedback_structured:
 1. Download and unzip the appropriate release for your version of
    Moodle.
 2. Copy the extracted "structured" folder into your
-   "/mod/assign/feedback/" subdirectory.
+   "public/mod/assign/feedback/" subdirectory.
 
 Whichever method you use to get the plugin code in place, the final
 step is to visit your Site Administration > Notifications page in a
@@ -125,11 +125,11 @@ Updating Moodle
 
 If you installed Moodle and the Structured feedback plugin from Git you
 can run the following commands to update both (see
-https://docs.moodle.org/500/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
+https://docs.moodle.org/501/en/Git_for_Administrators#Installing_a_contributed_extension_from_its_Git_repository):
 
     $ cd /path/to/your/moodle/
     $ git pull
-    $ cd mod/assign/feedback/structured/
+    $ cd public/mod/assign/feedback/structured/
     $ git pull
 
 
